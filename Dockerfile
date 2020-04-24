@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LC_ALL="C.UTF-8" \
     TERM="xterm" \
     TZ="Africa/Johannesburg" \
+    OLD_OVERRIDE_DISTRIB_CODENAME="eoan" \
     DISTRIB_CODENAME="focal" \
     PHP_VERSION=$PHP_VERSION
 #     \
@@ -43,9 +44,26 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 RUN add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRIB_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    apt -o Acquire::http::proxy="$PROXY" update && \
+    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt -y autoremove && \
+    apt -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ ${OLD_OVERRIDE_DISTRIB_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
-    add-apt-repository --yes --no-update ppa:maxmind/ppa && \
+    apt -o Acquire::http::proxy="$PROXY" update && \
+    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt -y autoremove && \
+    apt -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
+RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu ${OLD_OVERRIDE_DISTRIB_CODENAME} main" > /etc/apt/sources.list.d/maxmind.list && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
     apt -o Acquire::http::proxy="$PROXY" update && \
     apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt -y autoremove && \
@@ -73,7 +91,7 @@ RUN apt update && \
       postgresql-client \
       openssl \
       procps psmisc \
-      ripgrep rsync rsyslog rsyslog-elasticsearch \
+      rsync rsyslog \
       software-properties-common ssl-cert strace sudo supervisor \
       tar telnet thefuck tmux traceroute tree \
       unzip \
@@ -81,11 +99,16 @@ RUN apt update && \
       vim \
       xz-utils \
       zsh zsh-syntax-highlighting && \
+    apt -o Acquire::http::proxy="$PROXY" install -qy \
+      rsyslog-elasticsearch && \
     apt -y autoremove && \
     apt -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
+
+#    apt -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
+#      ripgrep && \
 
 RUN mkdir -p /root/src/exa && \
     EXA_FILE_NAME=$(curl -sL https://api.github.com/repos/ogham/exa/releases/latest | jq -r '.assets[].browser_download_url' | grep linux) && \
@@ -312,10 +335,10 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
+#    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
 RUN add-apt-repository -y ppa:git-core/ppa && \
     apt -o Acquire::http::proxy="$PROXY" update && \
     apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
     apt -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
     git lfs install && \
     apt -y autoremove && \
@@ -392,9 +415,10 @@ RUN mkdir -p /site/tmp && \
     find /site/.bash_profile -not -user web -execdir chown "web:" {} \+ && \
     find /site/tmp -not -user web -execdir chown "web:" {} \+
 
-RUN add-apt-repository --yes --no-update ppa:nginx/stable && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B3981E7A6852F782CC4951600A6F0A3C300EE8C && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
+#add-apt-repository --yes --no-update ppa:nginx/stable && \
+#    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B3981E7A6852F782CC4951600A6F0A3C300EE8C && \
+
+RUN apt -o Acquire::http::proxy="$PROXY" update && \
     apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt -o Acquire::http::proxy="$PROXY" -y install \
           nginx-extras \

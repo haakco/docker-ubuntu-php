@@ -101,7 +101,7 @@ if [[ "${ENABLE_DEBUG}" = "TRUE" ]]; then
 fi
 
 if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then
-  env | grep 'LVENV_' | sort | sed -E -e 's/"/\\"/g' -e 's/LVENV_(.*)="*([^"]*)"*/\1="\2"/' > /site/web/.env
+  env | grep 'LVENV_' | sort | sed -E -e 's/"/\\"/g' -e 's#LVENV_(.*)=#\1=#' -e 's#=(.+)#="\1"#' > /site/web/.env
 fi
 
 # Try to fix rsyslogd: file '/dev/stdout': open error: Permission denied

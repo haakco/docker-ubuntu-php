@@ -1,0 +1,13 @@
+docker build --build-arg PHP_VERSION=$PHP_VERSION -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+#!/bin/bash
+
+echo "------ HOOK START - BUILD -------"
+printenv
+
+# ENV VARs are set by the cloud.docker.com build process, and are available during automated builds, automated tests,
+# and while executing hooks like here.
+# DOCKER_TAG: the Docker repository tag being built.
+# https://docs.docker.com/docker-hub/builds/advanced/
+docker build -t $IMAGE_NAME --build-arg PHP_VERSION=$PHP_VERSION -f $DOCKERFILE_PATH .
+
+echo "------ HOOK END   - BUILD -------"

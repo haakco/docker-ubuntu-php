@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-ARG PHP_VERSION=7.4
+ARG PHP_VERSION
 ARG PROXY=''
 
 ENV DEBIAN_FRONTEND="noninteractive" \
@@ -14,6 +14,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     PHP_VERSION=$PHP_VERSION
 #     \
 #    XDEBUG_VERSION="2.9.0"
+RUN  [ -z "$PHP_VERSION" ] && echo "MY_ARG is required" && exit 1 || true
 
 RUN echo "PHP_VERSION=${PHP_VERSION}" && \
     echo "PROXY=${PROXY}" && \

@@ -467,8 +467,11 @@ RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-ADD ./files/filebeat /etc/
-ADD ./files/metricbeat /etc/
+ADD ./files/filebeat/filebeat.yml /etc/filebeat/filebeat.yml
+ADD ./files/filebeat/modules.d/nginx.yml /etc/filebeat/modules.d/nginx.yml
+ADD ./files/metricbeat/metricbeat.yml /etc/metricbeat/metricbeat.yml
+ADD ./files/metricbeat/modules.d/nginx.yml /etc/metricbeat/modules.d/nginx.yml
+ADD ./files/metricbeat/modules.d/php_fpm.yml /etc/metricbeat/modules.d/php_fpm.yml
 
 RUN find /site -not -user web -execdir chown "web:" {} \+ && \
     find /usr/share/GeoIP -not -user web -execdir chown "web:" {} \+

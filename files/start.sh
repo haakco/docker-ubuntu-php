@@ -64,6 +64,7 @@ fi
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 # m h  dom mon dow   command
+0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto 2>&1 | /dev/stdout
 10 4 * * 6 /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP; chown -R web: /usr/share/GeoIP/*
 
 #rename on start
@@ -119,5 +120,31 @@ fi
 sed -Ei \
   -e "s/NGINX_SITES/${NGINX_SITES}/" \
   /site/nginx/config/sites.conf
+
+## Rotate logs at start just in case
+/usr/sbin/logrotate -vf /etc/logrotate.d/*.auto &
+
+sed -i \
+  -e "s#ELK_ENVIROMENT#${ELK_ENVIROMENT}#" \
+  -e "s#ELK_KIBANA_HOST#${ELK_KIBANA_HOST}#" \
+  -e "s#ELK_KIBANA_USERNAME#${ELK_KIBANA_USERNAME}#" \
+  -e "s#ELK_KIBANA_PASSWORD#${ELK_KIBANA_PASSWORD}#" \
+  -e "s#ELK_ELASTIC_HOST#${ELK_ELASTIC_HOST}#" \
+  -e "s#ELK_ELASTIC_USERNAME#${ELK_ELASTIC_USERNAME}#" \
+  -e "s#ELK_ELASTIC_PASSWORD#${ELK_ELASTIC_PASSWORD}#" \
+  /etc/filebeat/filebeat.yml \
+  /etc/filebeat/metricbeat.yml
+
+if [[ "${ELK_METRICBEAT_ACTIVE}" = "TRUE" ]]; then
+  sed -E -i -e 's/ELK_METRICBEAT_ACTIVE/true/' /supervisord.conf
+else
+  sed -E -i -e 's/ELK_METRICBEAT_ACTIVE/false/' /supervisord.conf
+fi
+
+if [[ "${ELK_FILEBEAT_ACTIVE}" = "TRUE" ]]; then
+  sed -E -i -e 's/ELK_FILEBEAT_ACTIVE/true/' /supervisord.conf
+else
+  sed -E -i -e 's/ELK_FILEBEAT_ACTIVE/false/' /supervisord.conf
+fi
 
 /usr/bin/supervisord -n -c /supervisord.conf

@@ -73,7 +73,7 @@ RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu ${OLD_OVERRIDE_DISTRIB
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-RUN apt update && \
+RUN apt -o Acquire::http::proxy="$PROXY" update && \
     apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt -o Acquire::http::proxy="$PROXY" install -qy \
       autojump apt-transport-https \
@@ -86,6 +86,7 @@ RUN apt update && \
       gawk git git-core \
       inetutils-ping inetutils-tools \
       jq \
+      logrotate \
       libssh2-1 lynx \
       net-tools \
       mysql-client \
@@ -120,7 +121,7 @@ RUN mkdir -p /root/src/exa && \
     chmod 0755 /usr/local/bin/exa && \
     rm -rf /root/src/exa
 
-RUN apt update && \
+RUN apt -o Acquire::http::proxy="$PROXY" update && \
     apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt -o Acquire::http::proxy="$PROXY" -y install \
       libmcrypt4 libmcrypt-dev \
@@ -296,6 +297,7 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
 RUN sed -Ei \
         -e "s/error_log = .*/error_log = syslog/" \
         -e "s/.*syslog\.ident = .*/syslog.ident = php-fpm/" \
+        -e "s/.*log_buffering = .*/log_buffering = yes/" \
         /etc/php/${PHP_VERSION}/fpm/php-fpm.conf && \
     echo "request_terminate_timeout = 600" >> /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
 
@@ -305,9 +307,9 @@ RUN sed -Ei \
         -e 's/listen\.owner.*/listen.owner = web/' \
         -e 's/listen\.group.*/listen.group = web/' \
         -e 's/.*listen\.backlog.*/listen.backlog = 65536/' \
-        -e "s/pm\.max_children = .*/pm.max_children = 20/" \
-        -e "s/pm\.min_spare_servers = .*/pm.min_spare_servers = 2/" \
-        -e "s/pm\.max_spare_servers = .*/pm.max_spare_servers = 5/" \
+        -e "s/pm\.max_children = .*/pm.max_children = 32/" \
+        -e "s/pm\.min_spare_servers = .*/pm.min_spare_servers = 4/" \
+        -e "s/pm\.max_spare_servers = .*/pm.max_spare_servers = 8/" \
         -e "s/.*pm\.max_requests = .*/pm.max_requests = 0/" \
         -e "s/.*pm\.status_path = .*/pm.status_path = \/fpm-status/" \
         -e "s/.*ping\.path = .*/ping.path = \/fpm-ping/" \
@@ -446,6 +448,27 @@ RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
     rm -rf /site/web/vendor
 
 USER root
+
+RUN /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP && \
+    chown -R web: /usr/share/GeoIP/*
+
+ADD ./files/logrotate.d/ /etc/logrotate.d/
+
+RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - && \
+    echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" > /etc/apt/sources.list.d/elastic.list && \
+    apt -o Acquire::http::proxy="$PROXY" update && \
+        apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+        apt -o Acquire::http::proxy="$PROXY" install -qy \
+        filebeat \
+        metricbeat && \
+    apt -y autoremove && \
+    apt -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
+ADD ./files/filebeat /etc/
+ADD ./files/metricbeat /etc/
 
 RUN find /site -not -user web -execdir chown "web:" {} \+ && \
     find /usr/share/GeoIP -not -user web -execdir chown "web:" {} \+

@@ -222,7 +222,7 @@ RUN find "/etc/php/${PHP_VERSION}/fpm" -iname '*xdebug*' -delete && \
 ENV PHP_TIMEZONE="Africa/Johannesburg" \
     PHP_UPLOAD_MAX_FILESIZE="128M" \
     PHP_POST_MAX_SIZE="128M" \
-    PHP_MEMORY_LIMIT="2G" \
+    PHP_MEMORY_LIMIT="3G" \
     PHP_MAX_EXECUTION_TIME="600" \
     PHP_MAX_INPUT_TIME="600" \
     PHP_OPCACHE_MEMORY_CONSUMPTION="128" \

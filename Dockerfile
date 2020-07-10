@@ -226,6 +226,7 @@ ENV PHP_TIMEZONE="Africa/Johannesburg" \
     PHP_MEMORY_LIMIT="3G" \
     PHP_MAX_EXECUTION_TIME="600" \
     PHP_MAX_INPUT_TIME="600" \
+    PHP_DEFAULT_SOCKET_TIMEOUT="600" \
     PHP_OPCACHE_MEMORY_CONSUMPTION="128" \
     PHP_OPCACHE_INTERNED_STRINGS_BUFFER="16" \
     PHP_OPCACHE_MAX_ACCELERATED_FILES="16229" \
@@ -249,6 +250,7 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
         -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
         -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
         -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
+        -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
         -e "s/;default_charset = \"iso-8859-1\"/default_charset = \"UTF-8\"/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini && \

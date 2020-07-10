@@ -22,6 +22,7 @@ export PHP_POST_MAX_SIZE=${PHP_POST_MAX_SIZE:-"128M"}
 export PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-"3G"}
 export PHP_MAX_EXECUTION_TIME=${PHP_MAX_EXECUTION_TIME:-"600"}
 export PHP_MAX_INPUT_TIME=${PHP_MAX_INPUT_TIME:-"600"}
+export PHP_DEFAULT_SOCKET_TIMEOUT=${PHP_DEFAULT_SOCKET_TIMEOUT:-"600"}
 export PHP_OPCACHE_MEMORY_CONSUMPTION=${PHP_OPCACHE_MEMORY_CONSUMPTION:-"128"}
 export PHP_OPCACHE_INTERNED_STRINGS_BUFFER=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER:-"16"}
 export PHP_OPCACHE_MAX_ACCELERATED_FILES=${PHP_OPCACHE_MAX_ACCELERATED_FILES:-"16229"}
@@ -39,6 +40,7 @@ sed -i \
   -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
   -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
   -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
+  -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
   -e "s/opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
   -e "s/opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
   -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \

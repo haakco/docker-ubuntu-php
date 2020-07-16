@@ -128,7 +128,7 @@ sed -i \
   -e "s#ELK_ELASTIC_USERNAME#${ELK_ELASTIC_USERNAME}#" \
   -e "s#ELK_ELASTIC_PASSWORD#${ELK_ELASTIC_PASSWORD}#" \
   /etc/filebeat/filebeat.yml \
-  /etc/filebeat/metricbeat.yml
+  /etc/metricbeat/metricbeat.yml
 
 if [[ "${ELK_METRICBEAT_ACTIVE}" = "TRUE" ]]; then
   sed -E -i -e 's/ELK_METRICBEAT_ACTIVE/true/' /supervisord.conf

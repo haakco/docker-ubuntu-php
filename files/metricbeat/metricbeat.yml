@@ -63,7 +63,7 @@ fields:
 setup.kibana:
 
   host: "ELK_KIBANA_HOST"
-  protocol: "https"
+  protocol: "ELK_KIBANA_PROTOCOL"
   username: "ELK_KIBANA_USERNAME"
   password: "ELK_KIBANA_PASSWORD"
 
@@ -71,7 +71,7 @@ setup.kibana:
 output.elasticsearch:
   # Array of hosts to connect to.
   hosts: ["ELK_ELASTIC_HOST"]
-  protocol: "https"
+  protocol: "ELK_ELASTIC_PROTOCOL"
   username: "ELK_ELASTIC_USERNAME"
   password: "ELK_ELASTIC_PASSWORD"
   bulk_max_size: 3200

@@ -495,4 +495,13 @@ ENV NGINX_SITES='locahost' \
     INITIALISE_FILE="/site/web/initialise.sh" \
     LV_DO_CACHING="FALSE"
 
+    # Details for filebeat and metric beat
+ENV ELK_ENVIROMENT="" \
+    ELK_KIBANA_HOST="" \
+    ELK_KIBANA_USERNAME="" \
+    ELK_KIBANA_PASSWORD="" \
+    ELK_ELASTIC_HOST="" \
+    ELK_ELASTIC_USERNAME="" \
+    ELK_ELASTIC_PASSWORD=""
+
 CMD ["/start.sh"]

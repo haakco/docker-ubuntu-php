@@ -310,8 +310,9 @@ RUN sed -Ei \
         -e 's/listen\.group.*/listen.group = web/' \
         -e 's/.*listen\.backlog.*/listen.backlog = 65536/' \
         -e "s/pm\.max_children = .*/pm.max_children = 32/" \
+        -e "s/pm\.start_servers = .*/pm.start_servers = 4/" \
         -e "s/pm\.min_spare_servers = .*/pm.min_spare_servers = 4/" \
-        -e "s/pm\.max_spare_servers = .*/pm.max_spare_servers = 8/" \
+        -e "s/pm\.max_spare_servers = .*/pm.max_spare_servers = 16/" \
         -e "s/.*pm\.max_requests = .*/pm.max_requests = 0/" \
         -e "s/.*pm\.status_path = .*/pm.status_path = \/fpm-status/" \
         -e "s/.*ping\.path = .*/ping.path = \/fpm-ping/" \

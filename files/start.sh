@@ -10,7 +10,6 @@ export PHP_VERSION=${PHP_VERSION:-"7.4"}
 export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
 export CRONTAB_ACTIVE=${CRONTAB_ACTIVE:-"FALSE"}
-export WEBSOCKET_ACTIVE=${WEBSOCKET_ACTIVE:-"FALSE"}
 export ENABLE_DEBUG=${ENABLE_DEBUG:-"FALSE"}
 export GEN_LV_ENV=${GEN_LV_ENV:-"FALSE"}
 export INITIALISE_FILE=${INITIALISE_FILE:-"/site/web/initialise.sh"}
@@ -84,12 +83,6 @@ fi
 cat ${TEMP_CRON_FILE} | crontab -
 
 rm ${TEMP_CRON_FILE}
-
-if [[ "${WEBSOCKET_ACTIVE}" = "TRUE" ]]; then
-  sed -E -i -e 's/WEBSOCKET_ACTIVE/true/' /supervisord.conf
-else
-  sed -E -i -e 's/WEBSOCKET_ACTIVE/false/' /supervisord.conf
-fi
 
 sed -E -i -e "s/PHP_VERSION/${PHP_VERSION}/g" /supervisord.conf
 

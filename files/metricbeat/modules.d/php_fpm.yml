@@ -2,6 +2,7 @@
 # Docs: https://www.elastic.co/guide/en/beats/metricbeat/7.8/metricbeat-module-php_fpm.html
 
 - module: php_fpm
+  enabled: true
   metricsets:
     - pool
     - process

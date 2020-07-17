@@ -2,6 +2,7 @@
 # Docs: https://www.elastic.co/guide/en/beats/metricbeat/7.8/metricbeat-module-nginx.html
 
 - module: nginx
+  enabled: true
   metricsets:
     - stubstatus
   period: 10s

@@ -14,7 +14,7 @@ metricbeat.config.modules:
   path: ${path.config}/modules.d/*.yml
 
   # Set to true to enable config reloading
-  reload.enabled: false
+  reload.enabled: true
 
   # Period on which files under path should be checked for changes
   #reload.period: 10s
@@ -31,7 +31,7 @@ setup.template.settings:
 
 # The name of the shipper that publishes the network data. It can be used to group
 # all the transactions sent by a single shipper in the web interface.
-name: "haakco-php"
+name: "ELK_METRICBEAT_SHIPPER_NAME"
 
 # The tags of the shipper are included in their own field with each
 # transaction published.
@@ -49,6 +49,7 @@ fields:
 # the dashboards is disabled by default and can be enabled either by setting the
 # options here or by using the `setup` command.
 #setup.dashboards.enabled: false
+setup.dashboards.enabled: true
 
 # The URL from where to download the dashboards archive. By default this URL
 # has a value which is computed based on the Beat name and version. For released

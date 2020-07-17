@@ -496,6 +496,8 @@ ENV NGINX_SITES='locahost' \
 
     # Details for filebeat and metric beat
 ENV ELK_ENVIROMENT="" \
+    ELK_FILEBEAT_SHIPPER_NAME="" \
+    ELK_METRICBEAT_SHIPPER_NAME="" \
     ELK_KIBANA_HOST="" \
     ELK_KIBANA_PROTOCOL="" \
     ELK_KIBANA_USERNAME="" \

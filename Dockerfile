@@ -464,6 +464,7 @@ RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key
         apt -o Acquire::http::proxy="$PROXY" install -qy \
         filebeat \
         metricbeat && \
+    /usr/bin/metricbeat modules disable system && \
     apt -y autoremove && \
     apt -y clean && \
     rm -rf /var/lib/apt/lists/* && \

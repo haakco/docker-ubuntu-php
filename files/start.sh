@@ -120,6 +120,8 @@ sed -Ei \
 /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto &
 
 sed -i \
+  -e "s#LVENV_APP_NAME#${LVENV_APP_NAME}#" \
+  -e "s#LVENV_APP_ENV#${LVENV_APP_ENV}#" \
   -e "s#ELK_ENVIROMENT#${ELK_ENVIROMENT}#" \
   -e "s#ELK_FILEBEAT_SHIPPER_NAME#${ELK_FILEBEAT_SHIPPER_NAME}#" \
   -e "s#ELK_METRICBEAT_SHIPPER_NAME#${ELK_METRICBEAT_SHIPPER_NAME}#" \

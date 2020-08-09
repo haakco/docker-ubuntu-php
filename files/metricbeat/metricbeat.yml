@@ -24,7 +24,7 @@ metricbeat.config.modules:
 setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
-  _source.enabled: false
+  _source.enabled: true
 
 
 # ================================== General ===================================

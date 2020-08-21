@@ -293,6 +293,7 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
         /etc/php/${PHP_VERSION}/fpm/php.ini && \
     sed -Ei \
         -e "s/serialize_precision.*/serialize_precision = -1/" \
+        -e "s/precision.*/precision = 16/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini
 

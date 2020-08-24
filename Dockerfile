@@ -495,6 +495,9 @@ RUN echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c
     apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt -o Acquire::http::proxy="$PROXY" -y install \
           chromium-browser \
+          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
+          libappindicator1 \
+          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
         && \
     apt -y autoremove && \
     apt -y clean && \

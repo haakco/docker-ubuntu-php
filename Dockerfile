@@ -487,6 +487,32 @@ RUN chmod -R a+w /dev/stdout && \
     usermod -a -G tty syslog && \
     usermod -a -G tty web
 
+# Install chrome for headless testing
+
+RUN echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" > /etc/apt/sources.list.d/chrome.list && \
+    echo "deb-src http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" >> /etc/apt/sources.list.d/chrome.list && \
+    apt -o Acquire::http::proxy="$PROXY" update && \
+    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt -o Acquire::http::proxy="$PROXY" -y install \
+          chromium-browser \
+        && \
+    apt -y autoremove && \
+    apt -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
+# Install node for headless testing
+
+RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
+    apt -o Acquire::http::proxy="$PROXY" install -y nodejs && \
+    apt -y autoremove && \
+    apt -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
+
 EXPOSE 80
 
 ENV NGINX_SITES='locahost' \

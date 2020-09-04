@@ -8,4 +8,5 @@
         nomail
         notifempty
         copytruncate
+        size 250M
 }

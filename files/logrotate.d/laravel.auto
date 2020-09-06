@@ -1,6 +1,6 @@
 /site/web/storage/logs/laravel.log
 {
-        daily
+        weekly
         missingok
         rotate 7
         compress

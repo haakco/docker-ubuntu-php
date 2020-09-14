@@ -9,7 +9,7 @@ echo "Tagged as : ${IMAGE_NAME}"
 echo ""
 echo ""
 
-CMD='docker build --pull --rm --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' -t '"${IMAGE_NAME}"' .'
+CMD='docker build --rm --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' -t '"${IMAGE_NAME}"' .'
 
 echo "Build commmand: ${CMD}"
 echo ""

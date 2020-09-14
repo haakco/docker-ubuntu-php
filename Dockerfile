@@ -87,7 +87,7 @@ RUN apt -o Acquire::http::proxy="$PROXY" update && \
       inetutils-ping inetutils-tools \
       jq \
       logrotate \
-      libssh2-1 lynx \
+      libmaxminddb-dev libmaxminddb0 libssh2-1 lynx libsodium-dev libuuid1 \
       net-tools \
       mysql-client \
       postgresql-client \
@@ -99,8 +99,9 @@ RUN apt -o Acquire::http::proxy="$PROXY" update && \
       unzip \
       wget whois \
       vim \
+      uuid-dev \
       xz-utils \
-      zsh zsh-syntax-highlighting && \
+      zlib1g-dev zsh zsh-syntax-highlighting && \
     apt -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \
     apt -y autoremove && \
@@ -173,6 +174,42 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     IGBINARY_LOCATION='extension="'$(find /usr/lib/php -iname igbinary.so | sort -n -r  | head -n 1)'"' && \
     sed -i -E -e "s|extension.+|${IGBINARY_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" || \
       true
+
+## Extra packages recommended by composer install
+## Run if not 5.6 and 7.1
+RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
+    yes | pecl install -f pcov && \
+    yes | pecl install -f uopz && \
+    yes | pecl install -f protobuf && \
+    yes | pecl install -f grpc && \
+    yes | pecl install -f uuid && \
+    yes | pecl install -f maxminddb && \
+    echo "extension=$(find /usr/lib/php -iname pcov.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-pcov.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-pcov.ini" && \
+    echo "extension=$(find /usr/lib/php -iname protobuf.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-protobuf.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-protobuf.ini" && \
+    echo "extension=$(find /usr/lib/php -iname grpc.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-grpc.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-grpc.ini" && \
+    echo "extension=$(find /usr/lib/php -iname uuid.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-uuid.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-uuid.ini" && \
+    echo 1 || \
+      true
+
+RUN cd /root/src && \
+    ssh-keyscan github.com >> ~/.ssh/known_hosts && \
+    git clone --depth 1 https://github.com/maxmind/MaxMind-DB-Reader-php.git && \
+    cd MaxMind-DB-Reader-php/ext/ && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    echo "extension=$(find /usr/lib/php -iname maxminddb.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-maxminddb.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-maxminddb.ini"
 
 ## Finish with true deal is test non match
 ## Run if is 5.6 or 7.1

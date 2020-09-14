@@ -200,9 +200,10 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
       true
 
 RUN cd /root/src && \
+    mkdir -p /root/.ssh/ && \
     ssh-keyscan github.com >> ~/.ssh/known_hosts && \
     git clone --depth 1 https://github.com/maxmind/MaxMind-DB-Reader-php.git && \
-    cd MaxMind-DB-Reader-php/ext/ && \
+    cd /root/src/MaxMind-DB-Reader-php/ext/ && \
     phpize && \
     ./configure && \
     make && \

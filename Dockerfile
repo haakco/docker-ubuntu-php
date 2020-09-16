@@ -179,7 +179,6 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
 ## Run if not 5.6 and 7.1
 RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     yes | pecl install -f pcov && \
-    yes | pecl install -f uopz && \
     yes | pecl install -f protobuf && \
     yes | pecl install -f grpc && \
     yes | pecl install -f uuid && \

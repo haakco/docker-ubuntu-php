@@ -211,7 +211,9 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     make install && \
     echo "extension=$(find /usr/lib/php -iname maxminddb.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-maxminddb.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-maxminddb.ini"
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-maxminddb.ini" && \
+    echo 1 || \
+      true
 
 ## Finish with true deal is test non match
 ## Run if is 5.6 or 7.1

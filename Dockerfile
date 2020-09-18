@@ -182,7 +182,6 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     yes | pecl install -f protobuf && \
     yes | pecl install -f grpc && \
     yes | pecl install -f uuid && \
-    yes | pecl install -f maxminddb && \
     echo "extension=$(find /usr/lib/php -iname pcov.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-pcov.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-pcov.ini" && \
@@ -198,7 +197,10 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     echo 1 || \
       true
 
-RUN cd /root/src && \
+## Extra packages recommended by composer install
+## Run if not 5.6 and 7.1
+RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
+    cd /root/src && \
     mkdir -p /root/.ssh/ && \
     ssh-keyscan github.com >> ~/.ssh/known_hosts && \
     git clone --depth 1 https://github.com/maxmind/MaxMind-DB-Reader-php.git && \

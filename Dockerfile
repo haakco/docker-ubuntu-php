@@ -92,7 +92,7 @@ RUN apt -o Acquire::http::proxy="$PROXY" update && \
       mysql-client \
       postgresql-client \
       openssl \
-      procps psmisc \
+      plantuml procps psmisc \
       rsync rsyslog \
       software-properties-common ssl-cert strace sudo supervisor \
       tar telnet thefuck tmux traceroute tree \
@@ -368,7 +368,10 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     php -r "unlink('composer-setup.php');"
 
 RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
-    composer global require hirak/prestissimo
+    composer global require hirak/prestissimo && \
+    composer global require sllh/composer-versions-check && \
+    composer global require povils/phpmnd && \
+    composer global require 'phpmetrics/phpmetrics'
 
 RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
     wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \
@@ -449,7 +452,7 @@ ADD ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
 ADD ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
 ADD ./files/run_with_env.sh /bin/run_with_env.sh
 
-RUN echo 'PATH="/site/web/pharbin:/site/web/vendor/bin:${PATH}"' >> /site/.bashrc && \
+RUN echo 'PATH="/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor/bin:/site/.composer/vendor/bin:${PATH}"' >> /site/.bashrc && \
     echo 'shopt -s histappend' >> /site/.bashrc && \
     echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /site/.bashrc && \
     echo 'cd /site/web' >> /site/.bashrc && \
@@ -500,6 +503,9 @@ USER web
 
 RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
     composer global require hirak/prestissimo && \
+    composer global require sllh/composer-versions-check && \
+    composer global require povils/phpmnd && \
+    composer global require 'phpmetrics/phpmetrics' && \
     rm -rf /site/web/vendor
 
 USER root

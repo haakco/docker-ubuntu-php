@@ -370,6 +370,14 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
 RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
     composer global require hirak/prestissimo
 
+RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
+    wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \
+    gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 0x9D8A98B29B2D5D79 && \
+    gpg --verify phive.phar.asc phive.phar && \
+    rm phive.phar.asc && \
+    chmod +x phive.phar && \
+    mv phive.phar /usr/local/bin/phive
+
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-current-linux-amd64.zip && \
     unzip /rclone-current-linux-amd64.zip -d / && \
     mv /rclone-v* /rclone && \

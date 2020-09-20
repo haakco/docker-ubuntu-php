@@ -449,8 +449,9 @@ ADD ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
 ADD ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
 ADD ./files/run_with_env.sh /bin/run_with_env.sh
 
-RUN echo 'shopt -s histappend\n\
-    PROMPT_COMMAND="history -a;$PROMPT_COMMAND"\n' >> /site/.bashrc && \
+RUN echo 'PATH="/site/web/vendor/bin:/site/web/pharbin:${PATH}"' >> /site/.bashrc && \
+    echo 'shopt -s histappend' >> /site/.bashrc && \
+    echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /site/.bashrc && \
     echo 'cd /site/web' >> /site/.bashrc && \
     touch /root/.bash_profile /site/.bash_profile && \
     chown root: /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \

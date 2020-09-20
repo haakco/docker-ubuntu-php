@@ -453,6 +453,7 @@ RUN echo 'PATH="/site/web/pharbin:/site/web/vendor/bin:${PATH}"' >> /site/.bashr
     echo 'shopt -s histappend' >> /site/.bashrc && \
     echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /site/.bashrc && \
     echo 'cd /site/web' >> /site/.bashrc && \
+    mkdir -p  /site/web/pharbin && \
     touch /root/.bash_profile /site/.bash_profile && \
     chown root: /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
     chmod u+rw /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \

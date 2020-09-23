@@ -452,7 +452,7 @@ ADD ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
 ADD ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
 ADD ./files/run_with_env.sh /bin/run_with_env.sh
 
-RUN echo 'PATH="/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor/bin:/site/.composer/vendor/bin:${PATH}"' >> /site/.bashrc && \
+RUN echo 'PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor/bin:/site/.composer/vendor/bin:${PATH}"' >> /site/.bashrc && \
     echo 'shopt -s histappend' >> /site/.bashrc && \
     echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /site/.bashrc && \
     echo 'cd /site/web' >> /site/.bashrc && \

@@ -365,7 +365,9 @@ RUN sed -Ei \
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');"
+    php -r "unlink('composer-setup.php');" &&
+    mkdir -p /usr/local/bin &&
+    ln -sf /bin/composer /usr/local/bin/composer
 
 RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
     composer global require hirak/prestissimo && \

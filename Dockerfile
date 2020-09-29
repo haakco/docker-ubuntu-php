@@ -526,7 +526,7 @@ RUN /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP &&
 ADD ./files/logrotate.d/ /etc/logrotate.d/
 
 RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - && \
-    echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt-get stable main" > /etc/apt/sources.list.d/elastic.list && \
+    echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" > /etc/apt/sources.list.d/elastic.list && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
         apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
         apt-get -o Acquire::http::proxy="$PROXY" install -qy \

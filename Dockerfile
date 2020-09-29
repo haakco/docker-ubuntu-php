@@ -14,6 +14,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     PHP_VERSION=$PHP_VERSION
 #     \
 #    XDEBUG_VERSION="2.9.0"
+
 RUN  [ -z "$PHP_VERSION" ] && echo "MY_ARG is required" && exit 1 || true
 
 RUN echo "PHP_VERSION=${PHP_VERSION}" && \
@@ -365,8 +366,8 @@ RUN sed -Ei \
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');" &&
-    mkdir -p /usr/local/bin &&
+    php -r "unlink('composer-setup.php');" && \
+    mkdir -p /usr/local/bin && \
     ln -sf /bin/composer /usr/local/bin/composer
 
 RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \

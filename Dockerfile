@@ -22,61 +22,68 @@ RUN echo "PHP_VERSION=${PHP_VERSION}" && \
     echo ""
 
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
-    echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup &&\
+    echo apt-fast apt-fast/maxdownloads string 10 | debconf-set-selections && \
+    echo apt-fast apt-fast/dlflag boolean true | debconf-set-selections && \
+    echo apt-fast apt-fast/aptmanager string apt-get | debconf-set-selections && \
+    echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
     echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" install -qy locales && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+      software-properties-common && \
+    add-apt-repository -y ppa:apt-fast/stable && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy locales && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
     locale-gen en_ZA.UTF-8 && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
-    apt -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       apt-transport-https \
       software-properties-common \
       tzdata \
       && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
 RUN add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ ${OLD_OVERRIDE_DISTRIB_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
 RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu ${OLD_OVERRIDE_DISTRIB_CODENAME} main" > /etc/apt/sources.list.d/maxmind.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-RUN apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -o Acquire::http::proxy="$PROXY" install -qy \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       autojump apt-transport-https \
       bat bash-completion build-essential \
       bzip2 \
@@ -103,15 +110,15 @@ RUN apt -o Acquire::http::proxy="$PROXY" update && \
       uuid-dev \
       xz-utils \
       zlib1g-dev zsh zsh-syntax-highlighting && \
-    apt -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-#    apt -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
+#    apt-get -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
 #      ripgrep && \
 
 RUN mkdir -p /root/src/exa && \
@@ -123,9 +130,9 @@ RUN mkdir -p /root/src/exa && \
     chmod 0755 /usr/local/bin/exa && \
     rm -rf /root/src/exa
 
-RUN apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -o Acquire::http::proxy="$PROXY" -y install \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
       php-imagick \
@@ -145,12 +152,12 @@ RUN apt -o Acquire::http::proxy="$PROXY" update && \
       php${PHP_VERSION}-zip \
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
-    apt -o Acquire::http::proxy="$PROXY" install -y \
+    apt-get -o Acquire::http::proxy="$PROXY" install -y \
       php-pear \
       pear-channels \
       && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
@@ -219,16 +226,16 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
 ## Finish with true deal is test non match
 ## Run if is 5.6 or 7.1
 RUN test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
       php-redis \
       php-igbinary \
       php-xdebug \
       php${PHP_VERSION}-mcrypt \
     && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/* && \
@@ -389,22 +396,22 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-
     mv /rclone-v* /rclone && \
     cp /rclone/rclone /usr/local/bin/ && \
     rm -rf /rclone* && \
-    apt -o Acquire::http::proxy="$PROXY" -y update && \
-    apt -o Acquire::http::proxy="$PROXY" dist-upgrade  -y && \
-    apt -o Acquire::http::proxy="$PROXY" install -y fuse && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y update && \
+    apt-get -o Acquire::http::proxy="$PROXY" dist-upgrade  -y && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -y fuse && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
 RUN add-apt-repository -y ppa:git-core/ppa && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
     git lfs install && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
@@ -423,13 +430,13 @@ ADD ./files/GeoIp /usr/share/GeoIP
 
 # Fix for no missing repository
 RUN cd /usr/share/GeoIP/ && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
     /usr/bin/tar -xJpvf GeoIp.tar.xz && \
-    apt -o Acquire::http::proxy="$PROXY" -o Dpkg::Options::="--force-confold" -y install \
+    apt-get -o Acquire::http::proxy="$PROXY" -o Dpkg::Options::="--force-confold" -y install \
         geoip-bin geoip-database geoipupdate && \
     chown -R web:web /usr/share/GeoIP/* && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
@@ -482,13 +489,13 @@ RUN mkdir -p /site/tmp && \
 #add-apt-repository --yes --no-update ppa:nginx/stable && \
 #    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B3981E7A6852F782CC4951600A6F0A3C300EE8C && \
 
-RUN apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -o Acquire::http::proxy="$PROXY" -y install \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
           nginx-extras \
         && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
@@ -519,15 +526,15 @@ RUN /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP &&
 ADD ./files/logrotate.d/ /etc/logrotate.d/
 
 RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - && \
-    echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" > /etc/apt/sources.list.d/elastic.list && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-        apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-        apt -o Acquire::http::proxy="$PROXY" install -qy \
+    echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt-get stable main" > /etc/apt/sources.list.d/elastic.list && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+        apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+        apt-get -o Acquire::http::proxy="$PROXY" install -qy \
         filebeat \
         metricbeat && \
     /usr/bin/metricbeat modules disable system && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
@@ -551,16 +558,16 @@ RUN chmod -R a+w /dev/stdout && \
 
 RUN echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" > /etc/apt/sources.list.d/chrome.list && \
     echo "deb-src http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" >> /etc/apt/sources.list.d/chrome.list && \
-    apt -o Acquire::http::proxy="$PROXY" update && \
-    apt -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
           chromium-browser \
           libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
           libappindicator1 \
           libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
         && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
@@ -568,9 +575,9 @@ RUN echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c
 # Install node for headless testing
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
-    apt -o Acquire::http::proxy="$PROXY" install -y nodejs && \
-    apt -y autoremove && \
-    apt -y clean && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*

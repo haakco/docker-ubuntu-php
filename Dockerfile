@@ -133,6 +133,7 @@ RUN mkdir -p /root/src/exa && \
 RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
+      libcurl4 libcurl4-openssl-dev \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
       php-imagick \
@@ -176,7 +177,8 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     yes | pecl install -f mcrypt && \
     yes | pecl install -f xdebug && \
     echo "extension=$(find /usr/lib/php -iname redis.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
-    echo "extension=$(find /usr/lib/php -iname mcrypt.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" && \
+    echo "extension=$(find /usr/lib/php -iname redis.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
+    echo "extension=$(find /usr/lib/php -iname pecl_http.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" && \
     XDEBUG_LOCATION='zend_extension="'$(find /usr/lib/php -iname xdebug.so | sort -n -r  | head -n 1)'"' && \
     sed -i -E -e "s|zend_extension.+|${XDEBUG_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini" && \
     IGBINARY_LOCATION='extension="'$(find /usr/lib/php -iname igbinary.so | sort -n -r  | head -n 1)'"' && \
@@ -202,6 +204,24 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     echo "extension=$(find /usr/lib/php -iname uuid.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-uuid.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-uuid.ini" && \
+    echo 1 || \
+      true
+
+## Pecl HTTP Needs to be loaded last
+## Run if not 5.6 and 7.1
+RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
+    yes | pecl install -f raphf && \
+    yes | pecl install -f propro && \
+    yes | pecl install -f pecl_http && \
+    echo "extension=$(find /usr/lib/php -iname raphf.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-raphf.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-raphf.ini" && \
+    echo "extension=$(find /usr/lib/php -iname propro.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-propro.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-propro.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-propro.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-propro.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-propro.ini" && \
+    echo "extension=$(find /usr/lib/php -iname http.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/90-pecl_http.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/90-pecl_http.ini" && \
     echo 1 || \
       true
 

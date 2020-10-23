@@ -543,12 +543,15 @@ RUN chmod u+x /testLoop.sh
 
 USER web
 
-RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
-    composer global require sllh/composer-versions-check && \
-    composer global require 'phpmetrics/phpmetrics'
+##    Does not support php 8.0 yet
+#    composer global require sllh/composer-versions-check && \
+#    composer global require povils/phpmnd
 
 #    Not needed for new composer
 #    composer global require hirak/prestissimo && \
+
+RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
+    composer global require 'phpmetrics/phpmetrics'
 
 RUN test "${PHP_VERSION}" != "8.0" && \
     composer global require povils/phpmnd || \

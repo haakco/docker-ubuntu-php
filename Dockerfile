@@ -149,7 +149,6 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
-      php${PHP_VERSION}-json \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
       php${PHP_VERSION}-pgsql \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 \
@@ -166,6 +165,19 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
+
+RUN test "${PHP_VERSION}" != "8.0" && \
+        apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+        php${PHP_VERSION}-json \
+    && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/* || \
+    true
 
 ## To get this to also build older versions of PHP have to do some testing on versions here
 

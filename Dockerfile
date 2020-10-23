@@ -412,11 +412,8 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     mkdir -p /usr/local/bin && \
     ln -sf /bin/composer /usr/local/bin/composer
 
-RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
-    composer global require hirak/prestissimo && \
-    composer global require sllh/composer-versions-check && \
-    composer global require povils/phpmnd && \
-    composer global require 'phpmetrics/phpmetrics'
+#User new composer
+RUN composer self-update --preview
 
 RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
     wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \
@@ -547,11 +544,15 @@ RUN chmod u+x /testLoop.sh
 USER web
 
 RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
-    composer global require hirak/prestissimo && \
     composer global require sllh/composer-versions-check && \
-    composer global require povils/phpmnd && \
-    composer global require 'phpmetrics/phpmetrics' && \
-    rm -rf /site/web/vendor
+    composer global require 'phpmetrics/phpmetrics'
+
+#    Not needed for new composer
+#    composer global require hirak/prestissimo && \
+
+RUN test "${PHP_VERSION}" != "8.0" && \
+    composer global require povils/phpmnd || \
+    true
 
 USER root
 

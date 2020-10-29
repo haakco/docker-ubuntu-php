@@ -412,9 +412,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     mkdir -p /usr/local/bin && \
     ln -sf /bin/composer /usr/local/bin/composer
 
-#User new composer
-RUN composer self-update --preview
-
 RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
     wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \
     gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 0x9D8A98B29B2D5D79 && \

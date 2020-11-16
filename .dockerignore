@@ -6,7 +6,7 @@
 .editorconfig
 
 #build files
-build74.sh
+build_2004_74.sh
 run.sh
 buildCache.sh
 

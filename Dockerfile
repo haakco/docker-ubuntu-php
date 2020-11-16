@@ -483,7 +483,7 @@ RUN cd /root/ && \
 #ADD ./files/composer/auth.json /site/.composer/auth.json
 
 ADD ./files/start.sh /start.sh
-ADD ./files/supervisord.conf /supervisord.conf
+ADD ./files/supervisord_base.conf /supervisord_base.conf
 
 ADD ./files/rsyslog.conf /etc/rsyslog.conf
 ADD ./files/rsyslog.d/50-default.conf /etc/rsyslog.d/50-default.conf
@@ -626,7 +626,10 @@ ENV NGINX_SITES='locahost' \
     ENABLE_DEBUG="FALSE" \
     GEN_LV_ENV="FALSE" \
     INITIALISE_FILE="/site/web/initialise.sh" \
-    LV_DO_CACHING="FALSE"
+    LV_DO_CACHING="FALSE" \
+    ENABLE_HORIZON="FALSE" \
+    ENABLE_SIMPLE_QUEUE="FALSE" \
+    SIMPLE_WORKER_NUM="5"
 
     # Details for filebeat and metric beat
 ENV ELK_ENVIROMENT="" \

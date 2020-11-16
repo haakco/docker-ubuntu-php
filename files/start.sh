@@ -9,6 +9,8 @@ export PHP_VERSION=${PHP_VERSION:-"7.4"}
 
 export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
+export ENABLE_SIMPLE_QUEUE=${ENABLE_SIMPLE_QUEUE:-"FALSE"}
+export SIMPLE_WORKER_NUM=${SIMPLE_WORKER_NUM:-"5"}
 export CRONTAB_ACTIVE=${CRONTAB_ACTIVE:-"FALSE"}
 export ENABLE_DEBUG=${ENABLE_DEBUG:-"FALSE"}
 export GEN_LV_ENV=${GEN_LV_ENV:-"FALSE"}
@@ -57,10 +59,22 @@ if [[ "${PHP_OPCACHE_PRELOAD_FILE}" != "" ]]; then
     /etc/php/"${PHP_VERSION}"/fpm/php.ini
 fi
 
-if [[ "${ENABLE_HORIZON}" != "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=ENABLE_HORIZON/numprocs=0/' /supervisord.conf
-else
+cp /supervisord_base.conf /supervisord.conf
+
+if [[ "${ENABLE_HORIZON}" = "TRUE" ]]; then
   sed -E -i -e 's/^numprocs=ENABLE_HORIZON/numprocs=1/' /supervisord.conf
+  SIMPLE_WORKER_NUM='0'
+  ENABLE_SIMPLE_QUEUE='FALSE'
+else
+  sed -E -i -e 's/^numprocs=ENABLE_HORIZON/numprocs=0/' /supervisord.conf
+fi
+
+sed -E -i -e 's/^numprocs=WORKER_NUM/numprocs='"${WORKERS}"'/' /supervisord.conf
+
+if [[ "${ENABLE_HORIZON}" != "TRUE" && "${ENABLE_SIMPLE_QUEUE}" = "TRUE" ]]; then
+  sed -E -i -e 's/SIMPLE_WORKER_NUM/'"${SIMPLE_WORKER_NUM}"'/' /supervisord.conf
+else
+  sed -E -i -e 's/SIMPLE_WORKER_NUM/0/' /supervisord.conf
 fi
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage

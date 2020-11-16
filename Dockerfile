@@ -623,7 +623,7 @@ EXPOSE 80
 
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \
-    ENABLE_DEBUG="TRUE" \
+    ENABLE_DEBUG="FALSE" \
     GEN_LV_ENV="FALSE" \
     INITIALISE_FILE="/site/web/initialise.sh" \
     LV_DO_CACHING="FALSE"

@@ -419,7 +419,8 @@ RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
     gpg --verify phive.phar.asc phive.phar && \
     rm phive.phar.asc && \
     chmod +x phive.phar && \
-    mv phive.phar /usr/local/bin/phive
+    mv phive.phar /usr/local/bin/phive && \
+    /usr/local/bin/phive selfupdate
 
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-current-linux-amd64.zip && \
     unzip /rclone-current-linux-amd64.zip -d / && \

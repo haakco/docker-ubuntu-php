@@ -92,7 +92,7 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
       dos2unix dnsutils \
       expect \
       ftp fzf \
-      gawk git git-core \
+      gawk git git-core gnupg \
       inetutils-ping inetutils-tools \
       jq \
       logrotate \
@@ -594,12 +594,14 @@ RUN chmod -R a+w /dev/stdout && \
 
 # Install chrome for headless testing
 
-RUN echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" > /etc/apt/sources.list.d/chrome.list && \
-    echo "deb-src http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" >> /etc/apt/sources.list.d/chrome.list && \
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
+    echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" > /etc/apt/sources.list.d/chrome.list && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
-          chromium-browser \
+          google-chrome-stable \
+          fonts-liberation \
           libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
           libappindicator1 \
           libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \

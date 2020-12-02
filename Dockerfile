@@ -621,10 +621,8 @@ RUN curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
     rm -rf /tmp/*
 
 RUN npm -g install \
-      node-gyp \
-      npm-check-updates
-
-EXPOSE 80
+      npm-check-updates \
+      node-gyp
 
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \
@@ -649,8 +647,6 @@ ENV ELK_ENVIROMENT="" \
     ELK_ELASTIC_USERNAME="" \
     ELK_ELASTIC_PASSWORD=""
 
-CMD ["/start.sh"]
-
 ENV HEALTHCHECK_CMD='curl -f http://localhost/ || exit 1'
 
 HEALTHCHECK \
@@ -659,3 +655,5 @@ HEALTHCHECK \
   --start-period=15s \
   --retries=10 \
   CMD "${HEALTHCHECK_CMD}"
+
+CMD ["/start.sh"]

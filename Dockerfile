@@ -649,7 +649,8 @@ ENV ELK_ENVIROMENT="" \
 
 ADD ./files/healthCheck.sh /healthCheck.sh
 
-RUN chmod u+x /healthCheck.sh
+RUN chown web: /healthCheck.sh && \
+    chmod a+x /healthCheck.sh
 
 HEALTHCHECK \
   --interval=30s \

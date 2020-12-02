@@ -647,13 +647,15 @@ ENV ELK_ENVIROMENT="" \
     ELK_ELASTIC_USERNAME="" \
     ELK_ELASTIC_PASSWORD=""
 
-ENV HEALTHCHECK_CMD='curl -f http://localhost/ || exit 1'
+ADD ./files/healthCheck.sh /healthCheck.sh
+
+RUN chmod u+x /healthCheck.sh
 
 HEALTHCHECK \
   --interval=30s \
   --timeout=30s \
   --start-period=15s \
   --retries=10 \
-  CMD "${HEALTHCHECK_CMD}"
+  CMD /healthCheck.sh
 
 CMD ["/start.sh"]

@@ -620,7 +620,9 @@ RUN curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-RUN npm -g install node-gypnpm-check-updates
+RUN npm -g install \
+      node-gyp \
+      npm-check-updates
 
 EXPOSE 80
 

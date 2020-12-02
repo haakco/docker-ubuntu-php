@@ -612,7 +612,7 @@ RUN echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c
 
 # Install node for headless testing
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
     apt-get -y autoremove && \
     apt-get -y clean && \
@@ -620,6 +620,7 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
+RUN npm -g install node-gypnpm-check-updates
 
 EXPOSE 80
 

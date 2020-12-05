@@ -1,8 +1,8 @@
 ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
-FROM ${BASE_UBUNTU_VERSION}
-
 ARG PHP_VERSION='7.4'
 ARG PROXY=''
+
+FROM ${BASE_UBUNTU_VERSION}
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
@@ -12,9 +12,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     TZ="Africa/Johannesburg" \
     OLD_OVERRIDE_DISTRIB_CODENAME="eoan" \
     DISTRIB_CODENAME="focal" \
-    PHP_VERSION=$PHP_VERSION
-#     \
-#    XDEBUG_VERSION="2.9.0"
+    PHP_VERSION="$PHP_VERSION"
 
 RUN  [ -z "$PHP_VERSION" ] && echo "MY_ARG is required" && exit 1 || true
 

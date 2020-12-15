@@ -4,6 +4,10 @@ ARG PROXY=''
 
 FROM ${BASE_UBUNTU_VERSION}
 
+ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
+ARG PHP_VERSION='7.4'
+ARG PROXY=''
+
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8" \
@@ -14,7 +18,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     DISTRIB_CODENAME="focal" \
     PHP_VERSION="$PHP_VERSION"
 
-RUN  [ -z "$PHP_VERSION" ] && echo "MY_ARG is required" && exit 1 || true
+RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
 
 RUN echo "PHP_VERSION=${PHP_VERSION}" && \
     echo "PROXY=${PROXY}" && \

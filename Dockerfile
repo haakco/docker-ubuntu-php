@@ -206,7 +206,6 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
 RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     yes | pecl install -f pcov && \
     yes | pecl install -f protobuf && \
-    yes | pecl install -f grpc && \
     yes | pecl install -f uuid && \
     echo "extension=$(find /usr/lib/php -iname pcov.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-pcov.ini" && \
@@ -214,14 +213,21 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     echo "extension=$(find /usr/lib/php -iname protobuf.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-protobuf.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-protobuf.ini" && \
-    echo "extension=$(find /usr/lib/php -iname grpc.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-grpc.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-grpc.ini" && \
     echo "extension=$(find /usr/lib/php -iname uuid.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-uuid.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-uuid.ini" && \
     echo 1 || \
       true
+
+# ## Extra packages recommended by composer install
+# ## Run if not 5.6 and 7.1
+#RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
+#    yes | pecl install -f grpc && \
+#    echo "extension=$(find /usr/lib/php -iname grpc.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" && \
+#    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-grpc.ini" && \
+#    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-grpc.ini" && \
+#    echo 1 || \
+#      true
 
 ## Pecl HTTP Needs to be loaded last
 ## Run if not 5.6 and 7.1
@@ -627,7 +633,7 @@ RUN npm -g install \
       node-gyp
 
 RUN add-apt-repository -y ppa:savoury1/graphics && \
-RUN add-apt-repository -y ppa:savoury1/multimedia && \
+    add-apt-repository -y ppa:savoury1/multimedia && \
     add-apt-repository -y ppa:savoury1/ffmpeg4 && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \

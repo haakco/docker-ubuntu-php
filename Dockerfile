@@ -593,7 +593,7 @@ RUN chmod -R a+w /dev/stdout && \
 # Install chrome for headless testing
 
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
+    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
     echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" > /etc/apt/sources.list.d/chrome.list && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
@@ -623,6 +623,20 @@ RUN curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
 RUN npm -g install \
       npm-check-updates \
       node-gyp
+
+RUN add-apt-repository -y ppa:savoury1/graphics && \
+RUN add-apt-repository -y ppa:savoury1/multimedia && \
+    add-apt-repository -y ppa:savoury1/ffmpeg4 && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+          ffmpeg \
+        && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
 
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \

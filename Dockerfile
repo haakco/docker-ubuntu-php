@@ -646,6 +646,21 @@ RUN add-apt-repository -y ppa:savoury1/graphics && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+      gifsicle \
+      jpegoptim \
+      optipng \
+      && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+      rsyslog-elasticsearch && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \
     ENABLE_DEBUG="FALSE" \

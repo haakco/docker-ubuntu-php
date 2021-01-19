@@ -86,7 +86,7 @@ RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) mai
 RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
-      autojump apt-transport-https \
+      autossh autojump apt-transport-https \
       bat bash-completion build-essential \
       bzip2 \
       ca-certificates cron curl \

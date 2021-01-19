@@ -5,7 +5,6 @@ FROM ${BASE_UBUNTU_VERSION}
 ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
 ARG PHP_VERSION='7.4'
 ARG PROXY=''
-ARG DISTRIB_CODENAME='focal'
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
@@ -13,7 +12,6 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LC_ALL="C.UTF-8" \
     TERM="xterm" \
     TZ="Africa/Johannesburg" \
-    DISTRIB_CODENAME="$DISTRIB_CODENAME" \
     PHP_VERSION="$PHP_VERSION"
 
 RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
@@ -61,7 +59,7 @@ RUN add-apt-repository -y ppa:ondrej/php && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
-sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \

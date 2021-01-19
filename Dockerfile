@@ -5,6 +5,7 @@ FROM ${BASE_UBUNTU_VERSION}
 ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
 ARG PHP_VERSION='7.4'
 ARG PROXY=''
+ARG DISTRIB_CODENAME='focal'
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
@@ -12,8 +13,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LC_ALL="C.UTF-8" \
     TERM="xterm" \
     TZ="Africa/Johannesburg" \
-    OLD_OVERRIDE_DISTRIB_CODENAME="eoan" \
-    DISTRIB_CODENAME="focal" \
+    DISTRIB_CODENAME="$DISTRIB_CODENAME" \
     PHP_VERSION="$PHP_VERSION"
 
 RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
@@ -61,18 +61,21 @@ RUN add-apt-repository -y ppa:ondrej/php && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
-
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ ${OLD_OVERRIDE_DISTRIB_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+      postgresql-client \
+      && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu ${OLD_OVERRIDE_DISTRIB_CODENAME} main" > /etc/apt/sources.list.d/maxmind.list && \
+RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \

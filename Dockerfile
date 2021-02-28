@@ -142,18 +142,17 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
       libidn2-0 libidn2-dev \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
-      php-imagick \
-      php-ssh2 \
       php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
       php${PHP_VERSION}-bcmath \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-dev \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-intl \
+      php${PHP_VERSION}-imagick \
       php${PHP_VERSION}-ldap \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
       php${PHP_VERSION}-pgsql \
-      php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 \
+      php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2  \
       php${PHP_VERSION}-xml \
       php${PHP_VERSION}-zip \
     && \
@@ -272,9 +271,9 @@ RUN test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
-      php-redis \
-      php-igbinary \
-      php-xdebug \
+      php${PHP_VERSION}-redis \
+      php${PHP_VERSION}-igbinary \
+      php${PHP_VERSION}-xdebug \
       php${PHP_VERSION}-mcrypt \
     && \
     apt-get -y autoremove && \

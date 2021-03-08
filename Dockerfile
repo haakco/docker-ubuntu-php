@@ -391,8 +391,7 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
         -e "s/allow_url_fopen.*/allow_url_fopen = Off/" \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
+        /etc/php/${PHP_VERSION}/cli/php.ini
 
 RUN sed -Ei \
         -e "s/error_log = .*/error_log = syslog/" \

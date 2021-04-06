@@ -114,6 +114,7 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
       zlib1g-dev zsh zsh-syntax-highlighting && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \
+    update-ca-certificates --fresh && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
@@ -580,25 +581,25 @@ RUN /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP &&
 
 ADD ./files/logrotate.d/ /etc/logrotate.d/
 
-RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - && \
-    echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" > /etc/apt/sources.list.d/elastic.list && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-        apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-        apt-get -o Acquire::http::proxy="$PROXY" install -qy \
-        filebeat \
-        metricbeat && \
-    /usr/bin/metricbeat modules disable system && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
-
-ADD ./files/filebeat/filebeat.yml /etc/filebeat/filebeat.yml
-ADD ./files/filebeat/modules.d/nginx.yml /etc/filebeat/modules.d/nginx.yml
-ADD ./files/metricbeat/metricbeat.yml /etc/metricbeat/metricbeat.yml
-ADD ./files/metricbeat/modules.d/nginx.yml /etc/metricbeat/modules.d/nginx.yml
-ADD ./files/metricbeat/modules.d/php_fpm.yml /etc/metricbeat/modules.d/php_fpm.yml
+#RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - && \
+#    echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic.list && \
+#    apt-get -o Acquire::http::proxy="$PROXY" update && \
+#        apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+#        apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+#        filebeat \
+#        metricbeat && \
+#    /usr/bin/metricbeat modules disable system && \
+#    apt-get -y autoremove && \
+#    apt-get -y clean && \
+#    rm -rf /var/lib/apt/lists/* && \
+#    rm -rf /var/tmp/* && \
+#    rm -rf /tmp/*
+#
+#ADD ./files/filebeat/filebeat.yml /etc/filebeat/filebeat.yml
+#ADD ./files/filebeat/modules.d/nginx.yml /etc/filebeat/modules.d/nginx.yml
+#ADD ./files/metricbeat/metricbeat.yml /etc/metricbeat/metricbeat.yml
+#ADD ./files/metricbeat/modules.d/nginx.yml /etc/metricbeat/modules.d/nginx.yml
+#ADD ./files/metricbeat/modules.d/php_fpm.yml /etc/metricbeat/modules.d/php_fpm.yml
 
 RUN find /site -not -user web -execdir chown "web:" {} \+ && \
     find /usr/share/GeoIP -not -user web -execdir chown "web:" {} \+
@@ -611,9 +612,9 @@ RUN chmod -R a+w /dev/stdout && \
 
 # Install chrome for headless testing
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-    echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports $(lsb_release -c -s) universe main" > /etc/apt/sources.list.d/chrome.list && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -627,7 +628,25 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* || \
+    true
+
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+          chromium-browser \
+          fonts-liberation \
+          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
+          libappindicator1 \
+          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
+        && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/* || \
+    true
 
 # Install node for headless testing
 
@@ -643,7 +662,8 @@ RUN npm -g install \
       npm-check-updates \
       node-gyp
 
-RUN add-apt-repository -y ppa:savoury1/graphics && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+    add-apt-repository -y ppa:savoury1/graphics && \
     add-apt-repository -y ppa:savoury1/multimedia && \
     add-apt-repository -y ppa:savoury1/ffmpeg4 && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
@@ -655,7 +675,21 @@ RUN add-apt-repository -y ppa:savoury1/graphics && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* || \
+    true
+
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+          ffmpeg \
+        && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/* || \
+    true
 
 RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \

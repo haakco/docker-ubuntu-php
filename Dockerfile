@@ -124,11 +124,11 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
 #      ripgrep && \
 
 RUN mkdir -p /root/src/exa && \
-    EXA_FILE_NAME=$(curl -sL https://api.github.com/repos/ogham/exa/releases/latest | jq -r '.assets[].browser_download_url' | grep linux) && \
+    EXA_FILE_NAME=$(curl -sL https://api.github.com/repos/ogham/exa/releases/latest | jq -r '.assets[].browser_download_url' | grep linux-x86_64-v) && \
     wget -O "/root/src/exa/exa-linux-x86_64.zip" "${EXA_FILE_NAME}" && \
     cd /root/src/exa/ && \
     unzip exa-linux-x86_64.zip && \
-    mv /root/src/exa/exa-linux-x86_64 /usr/local/bin/exa && \
+    mv /root/src/exa/bin/exa /usr/local/bin/exa && \
     chmod 0755 /usr/local/bin/exa && \
     rm -rf /root/src/exa
 
@@ -193,13 +193,15 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     yes | pecl install -f redis && \
     yes | pecl install -f mcrypt && \
     yes | pecl install -f xdebug && \
+    yes | pecl install -f swoole && \
     echo "extension=$(find /usr/lib/php -iname redis.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
     echo "extension=$(find /usr/lib/php -iname mcrypt.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" && \
     XDEBUG_LOCATION='zend_extension="'$(find /usr/lib/php -iname xdebug.so | sort -n -r  | head -n 1)'"' && \
     sed -i -E -e "s|zend_extension.+|${XDEBUG_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini" && \
     IGBINARY_LOCATION='extension="'$(find /usr/lib/php -iname igbinary.so | sort -n -r  | head -n 1)'"' && \
-    sed -i -E -e "s|extension.+|${IGBINARY_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" || \
-      true
+    sed -i -E -e "s|extension.+|${IGBINARY_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" && \
+    echo "extension=$(find /usr/lib/php -iname swoole.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" || \
+    true
 
 ## Extra packages recommended by composer install
 ## Run if not 5.6 and 7.1
@@ -298,18 +300,22 @@ RUN mkdir -p "/etc/php/${PHP_VERSION}/mods-available/bak" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini" "/etc/php/${PHP_VERSION}/mods-available/xdebug.ini" || \
       true
 
-RUN find "/etc/php/${PHP_VERSION}/fpm" -iname '*xdebug*' -delete && \
+RUN find "/etc/php/${PHP_VERSION}/fpm" -iname '*igbinary*' -delete && \
+    find "/etc/php/${PHP_VERSION}/cli" -iname '*igbinary*' -delete && \
+    find "/etc/php/${PHP_VERSION}/fpm" -iname '*xdebug*' -delete && \
     find "/etc/php/${PHP_VERSION}/cli" -iname '*xdebug*' -delete && \
     find "/etc/php/${PHP_VERSION}/fpm" -iname '*redis*' -delete && \
     find "/etc/php/${PHP_VERSION}/cli" -iname '*redis*' -delete && \
-    find "/etc/php/${PHP_VERSION}/fpm" -iname '*igbinary*' -delete && \
-    find "/etc/php/${PHP_VERSION}/cli" -iname '*igbinary*' -delete && \
+    find "/etc/php/${PHP_VERSION}/cli" -iname '*swoole*' -delete && \
+    find "/etc/php/${PHP_VERSION}/fpm" -iname '*swoole*' -delete && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-igbinary.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-igbinary.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-redis.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-redis.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-mcrypt.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-mcrypt.ini"
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-mcrypt.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-swoole.ini" && \
+    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-swoole.ini"
 
 ENV PHP_TIMEZONE="Africa/Johannesburg" \
     PHP_UPLOAD_MAX_FILESIZE="128M" \
@@ -391,7 +397,7 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
         -e "s/allow_url_fopen.*/allow_url_fopen = Off/" \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini
+        /etc/php/${PHP_VERSION}/fpm/php.ini
 
 RUN sed -Ei \
         -e "s/error_log = .*/error_log = syslog/" \

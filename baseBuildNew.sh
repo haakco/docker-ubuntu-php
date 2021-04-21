@@ -11,11 +11,13 @@ echo "Tagged as : ${IMAGE_NAME}"
 echo ""
 echo ""
 
-docker context create blue
+eval  $(docker-machine env blue)
+
+docker context create blue --default-stack-orchestrator=swarm --docker "host=${DOCKER_HOST},ca=${DOCKER_CERT_PATH}/ca.pem,cert=${DOCKER_CERT_PATH}/cert.pem,key=${DOCKER_CERT_PATH}/key.pem"
+docker context use blue
 docker buildx create blue --name blue --driver docker-container --use
 docker buildx use blue
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-docker buildx create --name multiarch --driver docker-container --use
 docker run --privileged --rm tonistiigi/binfmt --install all
 docker buildx inspect --bootstrap
 

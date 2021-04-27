@@ -360,7 +360,6 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
         /etc/php/${PHP_VERSION}/fpm/php.ini && \
     sed -Ei \
         -e "s/precision.*/precision = 17/" \
-        -e "s/expose_phpexpose_php = On/expose_php = Off/" \
         -e "s/;opcache.enable=.*/opcache.enable=1/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini && \

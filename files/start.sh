@@ -78,7 +78,7 @@ else
   sed -E -i -e 's/SIMPLE_WORKER_NUM/0/' /supervisord.conf
 fi
 
-if [[ "${ENABLE_SSH}" != "TRUE" && "${ENABLE_SSH}" = "TRUE" ]]; then
+if [[ "${ENABLE_SSH}" = "TRUE" ]]; then
   sed -E -i -e 's/ENABLE_SSH/1/' /supervisord.conf
 else
   sed -E -i -e 's/ENABLE_SSH/0/' /supervisord.conf

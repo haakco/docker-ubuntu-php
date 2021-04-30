@@ -16,6 +16,7 @@ export ENABLE_DEBUG=${ENABLE_DEBUG:-"FALSE"}
 export GEN_LV_ENV=${GEN_LV_ENV:-"FALSE"}
 export INITIALISE_FILE=${INITIALISE_FILE:-"/site/web/initialise.sh"}
 export LV_DO_CACHING=${LV_DO_CACHING:-"FALSE"}
+export ENABLE_SSH=${ENABLE_SSH:-"FALSE"}
 
 export PHP_TIMEZONE=${PHP_TIMEZONE:-"Africa/Johannesburg"}
 export PHP_UPLOAD_MAX_FILESIZE=${PHP_UPLOAD_MAX_FILESIZE:-"128M"}
@@ -75,6 +76,12 @@ if [[ "${ENABLE_HORIZON}" != "TRUE" && "${ENABLE_SIMPLE_QUEUE}" = "TRUE" ]]; the
   sed -E -i -e 's/SIMPLE_WORKER_NUM/'"${SIMPLE_WORKER_NUM}"'/' /supervisord.conf
 else
   sed -E -i -e 's/SIMPLE_WORKER_NUM/0/' /supervisord.conf
+fi
+
+if [[ "${ENABLE_SSH}" != "TRUE" && "${ENABLE_SSH}" = "TRUE" ]]; then
+  sed -E -i -e 's/ENABLE_SSH/1/' /supervisord.conf
+else
+  sed -E -i -e 's/ENABLE_SSH/0/' /supervisord.conf
 fi
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage

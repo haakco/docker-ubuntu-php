@@ -705,6 +705,19 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
+# Add openssh
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+      openssh-server \
+      && \
+    mkdir -p /run/sshd && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/tmp/* && \
+    rm -rf /tmp/*
+
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \
     ENABLE_DEBUG="FALSE" \
@@ -713,7 +726,8 @@ ENV NGINX_SITES='locahost' \
     LV_DO_CACHING="FALSE" \
     ENABLE_HORIZON="FALSE" \
     ENABLE_SIMPLE_QUEUE="FALSE" \
-    SIMPLE_WORKER_NUM="5"
+    SIMPLE_WORKER_NUM="5" \
+    ENABLE_SSH="FALSE"
 
     # Details for filebeat and metric beat
 ENV ELK_ENVIROMENT="" \

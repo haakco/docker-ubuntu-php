@@ -84,6 +84,15 @@ else
   sed -E -i -e 's/ENABLE_SSH/0/' /supervisord.conf
 fi
 
+chmod 700 /root/.ssh
+
+if [[ ! -z "${SSH_AUTHORIZED_KEYS}" ]];then
+  echo "${SSH_AUTHORIZED_KEYS}" > /root/.ssh/authorized_keys
+fi
+
+chown root: /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 # m h  dom mon dow   command
 0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto 2>&1 | /dev/stdout

@@ -711,6 +711,7 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       openssh-server \
       && \
+    ssh-keygen -A && \
     mkdir -p /run/sshd && \
     apt-get -y autoremove && \
     apt-get -y clean && \

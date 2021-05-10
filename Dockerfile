@@ -335,6 +335,12 @@ ENV PHP_TIMEZONE="Africa/Johannesburg" \
     PHP_OPCACHE_PRELOAD_FILE="" \
     COMPOSER_PROCESS_TIMEOUT=2000
 
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php composer-setup.php --install-dir=/bin --filename=composer && \
+    php -r "unlink('composer-setup.php');" && \
+    mkdir -p /usr/local/bin && \
+    ln -sf /bin/composer /usr/local/bin/composer
+
 RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini.bak && \
       cp /etc/php/${PHP_VERSION}/fpm/php.ini /etc/php/${PHP_VERSION}/fpm/php.ini.bak && \
       sed -Ei \
@@ -394,7 +400,6 @@ RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini && \
     sed -Ei \
-        -e "s/allow_url_fopen.*/allow_url_fopen = Off/" \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
         /etc/php/${PHP_VERSION}/fpm/php.ini
@@ -424,11 +429,6 @@ RUN sed -Ei \
 
 #        -e 's/listen = .*/listen = 9000/' \
 
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php composer-setup.php --install-dir=/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');" && \
-    mkdir -p /usr/local/bin && \
-    ln -sf /bin/composer /usr/local/bin/composer
 
 RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
     wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \

@@ -580,26 +580,6 @@ RUN /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP &&
 
 ADD ./files/logrotate.d/ /etc/logrotate.d/
 
-#RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - && \
-#    echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic.list && \
-#    apt-get -o Acquire::http::proxy="$PROXY" update && \
-#        apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-#        apt-get -o Acquire::http::proxy="$PROXY" install -qy \
-#        filebeat \
-#        metricbeat && \
-#    /usr/bin/metricbeat modules disable system && \
-#    apt-get -y autoremove && \
-#    apt-get -y clean && \
-#    rm -rf /var/lib/apt/lists/* && \
-#    rm -rf /var/tmp/* && \
-#    rm -rf /tmp/*
-#
-#ADD ./files/filebeat/filebeat.yml /etc/filebeat/filebeat.yml
-#ADD ./files/filebeat/modules.d/nginx.yml /etc/filebeat/modules.d/nginx.yml
-#ADD ./files/metricbeat/metricbeat.yml /etc/metricbeat/metricbeat.yml
-#ADD ./files/metricbeat/modules.d/nginx.yml /etc/metricbeat/modules.d/nginx.yml
-#ADD ./files/metricbeat/modules.d/php_fpm.yml /etc/metricbeat/modules.d/php_fpm.yml
-
 RUN find /site -not -user web -execdir chown "web:" {} \+ && \
     find /usr/share/GeoIP -not -user web -execdir chown "web:" {} \+
 
@@ -729,19 +709,6 @@ ENV NGINX_SITES='locahost' \
     ENABLE_SIMPLE_QUEUE="FALSE" \
     SIMPLE_WORKER_NUM="5" \
     ENABLE_SSH="FALSE"
-
-    # Details for filebeat and metric beat
-ENV ELK_ENVIROMENT="" \
-    ELK_FILEBEAT_SHIPPER_NAME="" \
-    ELK_METRICBEAT_SHIPPER_NAME="" \
-    ELK_KIBANA_HOST="" \
-    ELK_KIBANA_PROTOCOL="" \
-    ELK_KIBANA_USERNAME="" \
-    ELK_KIBANA_PASSWORD="" \
-    ELK_ELASTIC_HOST="" \
-    ELK_ELASTIC_PROTOCOL="" \
-    ELK_ELASTIC_USERNAME="" \
-    ELK_ELASTIC_PASSWORD=""
 
 ADD ./files/healthCheck.sh /healthCheck.sh
 

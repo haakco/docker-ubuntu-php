@@ -149,23 +149,6 @@ sed -Ei \
 ## Rotate logs at start just in case
 /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto &
 
-sed -i \
-  -e "s#LVENV_APP_NAME#${LVENV_APP_NAME}#" \
-  -e "s#LVENV_APP_ENV#${LVENV_APP_ENV}#" \
-  -e "s#ELK_ENVIROMENT#${ELK_ENVIROMENT}#" \
-  -e "s#ELK_FILEBEAT_SHIPPER_NAME#${ELK_FILEBEAT_SHIPPER_NAME}#" \
-  -e "s#ELK_METRICBEAT_SHIPPER_NAME#${ELK_METRICBEAT_SHIPPER_NAME}#" \
-  -e "s#ELK_KIBANA_HOST#${ELK_KIBANA_HOST}#" \
-  -e "s#ELK_KIBANA_PROTOCOL#${ELK_KIBANA_PROTOCOL}#" \
-  -e "s#ELK_KIBANA_USERNAME#${ELK_KIBANA_USERNAME}#" \
-  -e "s#ELK_KIBANA_PASSWORD#${ELK_KIBANA_PASSWORD}#" \
-  -e "s#ELK_ELASTIC_HOST#${ELK_ELASTIC_HOST}#" \
-  -e "s#ELK_ELASTIC_PROTOCOL#${ELK_ELASTIC_PROTOCOL}#" \
-  -e "s#ELK_ELASTIC_USERNAME#${ELK_ELASTIC_USERNAME}#" \
-  -e "s#ELK_ELASTIC_PASSWORD#${ELK_ELASTIC_PASSWORD}#" \
-  /etc/filebeat/filebeat.yml \
-  /etc/metricbeat/metricbeat.yml
-
 if [[ "${ELK_METRICBEAT_ACTIVE}" = "TRUE" ]]; then
   sed -E -i -e 's/ELK_METRICBEAT_ACTIVE/true/' /supervisord.conf
 else

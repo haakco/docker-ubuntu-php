@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.2
 ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
 
 FROM ${BASE_UBUNTU_VERSION}
@@ -20,12 +21,14 @@ RUN echo "PHP_VERSION=${PHP_VERSION}" && \
     echo "PROXY=${PROXY}" && \
     echo ""
 
+RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt
+
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     echo apt-fast apt-fast/maxdownloads string 10 | debconf-set-selections && \
     echo apt-fast apt-fast/dlflag boolean true | debconf-set-selections && \
     echo apt-fast apt-fast/aptmanager string apt-get | debconf-set-selections && \
     echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
-    echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       software-properties-common && \

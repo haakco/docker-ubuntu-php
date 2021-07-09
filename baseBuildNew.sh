@@ -3,6 +3,7 @@ export PROXY="${PROXY:-''}"
 export PHP_VERSION="${PHP_VERSION:-'7.4'}"
 export IMAGE_NAME="${IMAGE_NAME:-'haakco/ubuntu2004-php74'}"
 export BASE_UBUNTU_VERSION="${BASE_UBUNTU_VERSION:-'ubuntu:20.04'}"
+export DOCKER_BUILDKIT=1
 
 echo "Building From: ${BASE_UBUNTU_VERSION}"
 echo "Building PHP: ${PHP_VERSION}"

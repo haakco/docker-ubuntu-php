@@ -22,9 +22,9 @@ RUN echo "PHP_VERSION=${PHP_VERSION}" && \
     echo ""
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
-RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt
 
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     echo apt-fast apt-fast/maxdownloads string 10 | debconf-set-selections && \
     echo apt-fast apt-fast/dlflag boolean true | debconf-set-selections && \
     echo apt-fast apt-fast/aptmanager string apt-get | debconf-set-selections && \
@@ -47,46 +47,34 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
       software-properties-common \
       tzdata \
       && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
-RUN add-apt-repository -y ppa:ondrej/php && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       postgresql-client \
       && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
-RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
-RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       autossh autojump apt-transport-https \
@@ -118,11 +106,7 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \
     update-ca-certificates --fresh && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 #    apt-get -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
 #      ripgrep && \
@@ -136,7 +120,8 @@ RUN mkdir -p /root/src/exa && \
     chmod 0755 /usr/local/bin/exa && \
     rm -rf /root/src/exa
 
-RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
       libbrotli-dev libbrotli1 \
@@ -171,17 +156,14 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     rm -rf /var/tmp/* && \
     rm -rf /tmp/*
 
-RUN test "${PHP_VERSION}" != "8.0" && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    test "${PHP_VERSION}" != "8.0" && \
         apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
         php${PHP_VERSION}-json \
     && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/* || \
+    apt-get -y autoremove || \
     true
 
 ## To get this to also build older versions of PHP have to do some testing on versions here
@@ -273,7 +255,8 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
 
 ## Finish with true deal is test non match
 ## Run if is 5.6 or 7.1
-RUN test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -283,10 +266,6 @@ RUN test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
       php${PHP_VERSION}-mcrypt \
     && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/* && \
     echo "extension=redis.so" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
     echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
       true
@@ -432,10 +411,9 @@ RUN sed -Ei \
 
 #        -e 's/listen = .*/listen = 9000/' \
 
-
 RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
     wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \
-    gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 0x9D8A98B29B2D5D79 && \
+    gpg --keyserver keyserver.ubuntu.com --recv-keys 0x9D8A98B29B2D5D79 && \
     gpg --verify phive.phar.asc phive.phar && \
     rm phive.phar.asc && \
     chmod +x phive.phar && \
@@ -450,21 +428,16 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-
     apt-get -o Acquire::http::proxy="$PROXY" -y update && \
     apt-get -o Acquire::http::proxy="$PROXY" dist-upgrade  -y && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y fuse && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-RUN add-apt-repository -y ppa:git-core/ppa && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    add-apt-repository -y ppa:git-core/ppa && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
     git lfs install && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 ADD ./files/zshrc/zshrc.in /root/.zshrc
 
@@ -480,17 +453,14 @@ ADD ./files/GeoIp/GeoIP.conf /etc/GeoIP.conf
 ADD ./files/GeoIp /usr/share/GeoIP
 
 # Fix for no missing repository
-RUN cd /usr/share/GeoIP/ && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    cd /usr/share/GeoIP/ && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     /usr/bin/tar -xJpvf GeoIp.tar.xz && \
     apt-get -o Acquire::http::proxy="$PROXY" -o Dpkg::Options::="--force-confold" -y install \
         geoip-bin geoip-database geoipupdate && \
     chown -R web:web /usr/share/GeoIP/* && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
@@ -540,16 +510,13 @@ RUN mkdir -p /site/tmp && \
 #add-apt-repository --yes --no-update ppa:nginx/stable && \
 #    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B3981E7A6852F782CC4951600A6F0A3C300EE8C && \
 
-RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
           nginx-extras \
         && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 ADD ./files/nginx_config /site/nginx/config
 
@@ -594,7 +561,8 @@ RUN chmod -R a+w /dev/stdout && \
 
 # Install chrome for headless testing
 
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
@@ -606,14 +574,11 @@ RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
           libappindicator1 \
           libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
         && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/* || \
+    apt-get -y autoremove || \
     true
 
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -623,11 +588,7 @@ RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
           libappindicator1 \
           libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
         && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/* || \
+    apt-get -y autoremove || \
     true
 
 # Install node for headless testing
@@ -644,7 +605,8 @@ RUN npm -g install \
       npm-check-updates \
       node-gyp
 
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     add-apt-repository -y ppa:savoury1/graphics && \
     add-apt-repository -y ppa:savoury1/multimedia && \
     add-apt-repository -y ppa:savoury1/ffmpeg4 && \
@@ -653,27 +615,21 @@ RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
           ffmpeg \
         && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/* || \
+    apt-get -y autoremove || \
     true
 
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
           ffmpeg \
         && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/* || \
+    apt-get -y autoremove || \
     true
 
-RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       gifsicle \
@@ -682,25 +638,18 @@ RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
       && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 # Add openssh
-RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt \
+    apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       openssh-server \
       && \
     ssh-keygen -A && \
     mkdir -p /run/sshd && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \

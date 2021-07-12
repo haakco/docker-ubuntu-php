@@ -664,6 +664,11 @@ ENV NGINX_SITES='locahost' \
 
 ADD ./files/healthCheck.sh /healthCheck.sh
 
+ENV TINI_VERSION v0.19.0
+
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
 RUN chown web: /healthCheck.sh && \
     chmod a+x /healthCheck.sh
 
@@ -673,5 +678,7 @@ HEALTHCHECK \
   --start-period=15s \
   --retries=10 \
   CMD /healthCheck.sh
+
+ENTRYPOINT ["/tini", "--"]
 
 CMD ["/start.sh"]

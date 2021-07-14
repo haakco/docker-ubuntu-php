@@ -593,7 +593,7 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
 
 # Install node for headless testing
 
-RUN curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
     apt-get -y autoremove && \
     apt-get -y clean && \

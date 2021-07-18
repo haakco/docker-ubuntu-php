@@ -409,17 +409,6 @@ RUN sed -Ei \
         -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
-#        -e 's/listen = .*/listen = 9000/' \
-
-RUN wget -O phive.phar "https://phar.io/releases/phive.phar" && \
-    wget -O phive.phar.asc "https://phar.io/releases/phive.phar.asc" && \
-    gpg --keyserver keyserver.ubuntu.com --recv-keys 0x9D8A98B29B2D5D79 && \
-    gpg --verify phive.phar.asc phive.phar && \
-    rm phive.phar.asc && \
-    chmod +x phive.phar && \
-    mv phive.phar /usr/local/bin/phive && \
-    /usr/local/bin/phive selfupdate
-
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-current-linux-amd64.zip && \
     unzip /rclone-current-linux-amd64.zip -d / && \
     mv /rclone-v* /rclone && \

@@ -135,6 +135,8 @@ chmod -R a+w /dev/stdout
 chmod -R a+w /dev/stderr
 chmod -R a+w /dev/stdin
 
+find /site -not -user web -execdir chown "web:" {} \+
+
 if [[ -e "${INITIALISE_FILE}" ]]; then
   chown web: "${INITIALISE_FILE}"
   chmod u+x "${INITIALISE_FILE}"

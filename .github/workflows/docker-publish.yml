@@ -43,7 +43,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=haakco/ubuntu2004-php80:buildcache
           cache-to: type=registry,ref=haakco/ubuntu2004-php80:buildcache,mode=max
-        env:
-          PHP_VERSION: 8.0
-          DOCKER_BUILDKIT: 1
-          BASE_UBUNTU_VERSION: 'ubuntu:20.04'
+          build-args: |
+            PHP_VERSION=8.0
+            BASE_UBUNTU_VERSION='ubuntu:20.04'

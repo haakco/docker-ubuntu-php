@@ -21,8 +21,8 @@ jobs:
         with:
           images: haakco/ubuntu2004-php80
           tags: |
+            type=raw,value={{branch}}-{{sha}}
             type=raw,value=latest
-            type=sha
             type=ref,event=branch
             type=ref,event=pr
             type=ref,event=tag

@@ -21,8 +21,10 @@ jobs:
         with:
           images: haakco/ubuntu2004-php80
           tags: |
-            type=ref,event=tag
+            type=raw,value=latest
+            type=raw,value={{date 'YYYYMMDD'}}
             type=ref,event=branch
+            type=ref,event=tag
             type=schedule,pattern={{date 'YYYYMMDD'}}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1

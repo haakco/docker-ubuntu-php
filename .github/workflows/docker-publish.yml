@@ -45,4 +45,4 @@ jobs:
           cache-to: type=registry,ref=haakco/ubuntu2004-php80:buildcache,mode=max
           build-args: |
             PHP_VERSION=8.0
-            BASE_UBUNTU_VERSION='ubuntu:20.04'
+            BASE_UBUNTU_VERSION=ubuntu:20.04

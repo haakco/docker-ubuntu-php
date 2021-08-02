@@ -4,7 +4,7 @@ ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
 FROM ${BASE_UBUNTU_VERSION}
 
 ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
-ARG PHP_VERSION='7.4'
+ARG PHP_VERSION='8.0'
 ARG PROXY=''
 
 ENV DEBIAN_FRONTEND="noninteractive" \
@@ -18,6 +18,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
 
 RUN echo "PHP_VERSION=${PHP_VERSION}" && \
+    echo "BASE_UBUNTU_VERSION=${BASE_UBUNTU_VERSION}" && \
     echo "PROXY=${PROXY}" && \
     echo ""
 

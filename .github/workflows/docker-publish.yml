@@ -21,7 +21,6 @@ jobs:
         with:
           images: haakco/ubuntu2004-php80
           tags: |
-            # branch event
             type=ref,event=branch
             type=schedule,pattern={{date 'YYYYMMDD'}}
       - name: Set up QEMU

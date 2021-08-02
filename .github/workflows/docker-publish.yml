@@ -24,14 +24,8 @@ jobs:
             type=ref,event=tag
             type=ref,event=branch
             type=schedule,pattern={{date 'YYYYMMDD'}}
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v1
-      - name: Set up QEMU Extra
-        id: qemu
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Log in to Docker Hub

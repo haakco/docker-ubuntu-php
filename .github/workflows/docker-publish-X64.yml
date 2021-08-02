@@ -24,6 +24,7 @@ jobs:
             type=raw,value=latest
             type=sha
             type=ref,event=branch
+            type=ref,event=pr
             type=ref,event=tag
             type=schedule,pattern={{date 'YYYYMMDD'}}
       - name: Set up QEMU

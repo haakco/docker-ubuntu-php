@@ -22,7 +22,7 @@ jobs:
           images: haakco/ubuntu2004-php80
           tags: |
             type=raw,value=latest
-            type=raw,value={{date 'YYYYMMDD'}}
+            type=sha
             type=ref,event=branch
             type=ref,event=tag
             type=schedule,pattern={{date 'YYYYMMDD'}}

@@ -17,9 +17,13 @@ jobs:
         uses: actions/checkout@v2
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        uses: docker/metadata-action@v3
         with:
           images: haakco/ubuntu2004-php80
+          tags: |
+            # branch event
+            type=ref,event=branch
+            type=schedule,pattern={{date 'YYYYMMDD'}}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -34,7 +38,7 @@ jobs:
         with:
           context: .
           push: true
-#          platforms: 'linux/amd64,linux/arm64'
+          platforms: 'linux/arm64,linux/amd64'
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
         env:

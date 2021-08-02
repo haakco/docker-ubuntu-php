@@ -23,7 +23,7 @@ docker run --privileged --rm tonistiigi/binfmt --install all
 docker buildx inspect --bootstrap
 
 #
-CMD='docker buildx build --push --platform  linux/arm/v7,linux/arm64,linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
+CMD='docker buildx build --push --platform  linux/arm64,linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
 #CMD='docker buildx build --push --platform  linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
 
 echo "Build commmand: ${CMD}"

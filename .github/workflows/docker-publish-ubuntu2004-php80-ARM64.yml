@@ -27,8 +27,8 @@ jobs:
             type=ref,event=pr
             type=ref,event=tag
             type=schedule,pattern={{date 'YYYYMMDD'}}
-      - name: Sleep for 30 seconds
-        run: sleep 30s
+      - name: Sleep for 15 seconds
+        run: sleep 15s
         shell: bash
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -50,5 +50,5 @@ jobs:
             BASE_UBUNTU_VERSION=ubuntu:20.04
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=haakco/ubuntu2004-php80:buildcache
-          cache-to: type=registry,ref=haakco/ubuntu2004-php80:buildcache,mode=max
+          cache-from: type=registry,ref=haakco/ubuntu2004-php80:buildcache-arm64
+          cache-to: type=registry,ref=haakco/ubuntu2004-php80:buildcache-arm64,mode=max

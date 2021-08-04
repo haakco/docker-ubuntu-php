@@ -1,12 +1,12 @@
 name: Publish ARM64 haakco/ubuntu2004-php80 Docker image
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
-  schedule:
-    - cron: '30 00 * * 6'
+#  push:
+#    branches:
+#      - master
+#  schedule:
+#    - cron: '30 00 * * 6'
 
 jobs:
   push_to_registry:

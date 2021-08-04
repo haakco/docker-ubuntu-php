@@ -41,7 +41,7 @@ jobs:
         with:
           context: .
           push: true
-#          platforms: linux/arm64,linux/amd64
+          platforms: linux/arm64,linux/amd64
           build-args:   |
             PHP_VERSION=8.0
             BASE_UBUNTU_VERSION=ubuntu:20.04

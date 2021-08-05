@@ -24,8 +24,7 @@ RUN echo "PHP_VERSION=${PHP_VERSION}" && \
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     echo apt-fast apt-fast/maxdownloads string 10 | debconf-set-selections && \
     echo apt-fast apt-fast/dlflag boolean true | debconf-set-selections && \
     echo apt-fast apt-fast/aptmanager string apt-get | debconf-set-selections && \
@@ -50,15 +49,13 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
       && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    add-apt-repository -y ppa:ondrej/php && \
+RUN add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
@@ -67,15 +64,13 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
       && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
+RUN echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       autossh autojump apt-transport-https \
@@ -121,8 +116,7 @@ RUN mkdir -p /root/src/exa && \
     chmod 0755 /usr/local/bin/exa && \
     rm -rf /root/src/exa
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
       libbrotli-dev libbrotli1 \
@@ -153,8 +147,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
       && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    test "${PHP_VERSION}" != "8.0" && \
+RUN test "${PHP_VERSION}" != "8.0" && \
         apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -252,8 +245,7 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
 
 ## Finish with true deal is test non match
 ## Run if is 5.6 or 7.1
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
+RUN test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -417,8 +409,7 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-
     apt-get -y autoremove
 
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    add-apt-repository -y ppa:git-core/ppa && \
+RUN add-apt-repository -y ppa:git-core/ppa && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
@@ -439,8 +430,7 @@ ADD ./files/GeoIp/GeoIP.conf /etc/GeoIP.conf
 ADD ./files/GeoIp /usr/share/GeoIP
 
 # Fix for no missing repository
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    cd /usr/share/GeoIP/ && \
+RUN cd /usr/share/GeoIP/ && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     /usr/bin/tar -xJpvf GeoIp.tar.xz && \
     apt-get -o Acquire::http::proxy="$PROXY" -o Dpkg::Options::="--force-confold" -y install \
@@ -496,8 +486,7 @@ RUN mkdir -p /site/tmp && \
 #add-apt-repository --yes --no-update ppa:nginx/stable && \
 #    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B3981E7A6852F782CC4951600A6F0A3C300EE8C && \
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
           nginx-extras \
@@ -547,8 +536,7 @@ RUN chmod -R a+w /dev/stdout && \
 
 # Install chrome for headless testing
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
@@ -563,8 +551,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
     apt-get -y autoremove || \
     true
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -587,8 +574,7 @@ RUN npm -g install \
       npm-check-updates \
       node-gyp
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     add-apt-repository -y ppa:savoury1/graphics && \
     add-apt-repository -y ppa:savoury1/multimedia && \
     add-apt-repository -y ppa:savoury1/ffmpeg4 && \
@@ -600,8 +586,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
     apt-get -y autoremove || \
     true
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
@@ -610,8 +595,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
     apt-get -y autoremove || \
     true
 
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       gifsicle \
@@ -623,8 +607,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
     apt-get -y autoremove
 
 # Add openssh
-RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
+RUN apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       openssh-server \

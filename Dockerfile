@@ -151,11 +151,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
       php-pear \
       pear-channels \
       && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubuntu,target=/var/lib/apt \
     test "${PHP_VERSION}" != "8.0" && \
@@ -585,11 +581,7 @@ RUN --mount=type=cache,id=ubuntu,target=/var/cache/apt --mount=type=cache,id=ubu
 
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/tmp/* && \
-    rm -rf /tmp/*
+    apt-get -y autoremove
 
 RUN npm -g install \
       npm-check-updates \

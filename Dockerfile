@@ -617,6 +617,9 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       gifsicle \
       jpegoptim \
       optipng \
+      pngquant \
+      gifsicle \
+      webp \
       && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \

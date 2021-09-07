@@ -9,6 +9,7 @@ export PHP_VERSION=${PHP_VERSION:-"7.4"}
 
 export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
+export ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-"FALSE"}
 export ENABLE_SIMPLE_QUEUE=${ENABLE_SIMPLE_QUEUE:-"FALSE"}
 export SIMPLE_WORKER_NUM=${SIMPLE_WORKER_NUM:-"5"}
 export CRONTAB_ACTIVE=${CRONTAB_ACTIVE:-"FALSE"}
@@ -76,6 +77,12 @@ if [[ "${ENABLE_HORIZON}" != "TRUE" && "${ENABLE_SIMPLE_QUEUE}" = "TRUE" ]]; the
   sed -E -i -e 's/SIMPLE_WORKER_NUM/'"${SIMPLE_WORKER_NUM}"'/' /supervisord.conf
 else
   sed -E -i -e 's/SIMPLE_WORKER_NUM/0/' /supervisord.conf
+fi
+
+if [[ "${ENABLE_WEBSOCKET}" = "TRUE" ]]; then
+  sed -E -i -e 's/^numprocs=WEBSOCKET_NUM/numprocs=1/' /supervisord.conf
+else
+  sed -E -i -e 's/^numprocs=WEBSOCKET_NUM/numprocs=0/' /supervisord.conf
 fi
 
 if [[ "${ENABLE_SSH}" = "TRUE" ]]; then

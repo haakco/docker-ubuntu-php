@@ -10,6 +10,7 @@ export PHP_VERSION=${PHP_VERSION:-"7.4"}
 export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
 export ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-"FALSE"}
+export LARAVEL_ECHO_PORT=${LARAVEL_ECHO_PORT:-"6001"}
 export ENABLE_SIMPLE_QUEUE=${ENABLE_SIMPLE_QUEUE:-"FALSE"}
 export SIMPLE_WORKER_NUM=${SIMPLE_WORKER_NUM:-"5"}
 export CRONTAB_ACTIVE=${CRONTAB_ACTIVE:-"FALSE"}
@@ -85,6 +86,8 @@ else
   sed -E -i -e 's/^numprocs=WEBSOCKET_NUM/numprocs=0/' /supervisord.conf
 fi
 
+sed -E -i -e "s#LARAVEL_ECHO_PORT#${LARAVEL_ECHO_PORT}#" /supervisord.conf
+
 if [[ "${ENABLE_SSH}" = "TRUE" ]]; then
   sed -E -i -e 's/ENABLE_SSH/1/' /supervisord.conf
 else
@@ -153,6 +156,10 @@ fi
 
 sed -Ei \
   -e "s/NGINX_SITES/${NGINX_SITES}/" \
+  /site/nginx/config/sites.conf
+
+sed -Ei \
+  -e "s/LARAVEL_ECHO_PORT/${LARAVEL_ECHO_PORT}/" \
   /site/nginx/config/sites.conf
 
 ## Rotate logs at start just in case

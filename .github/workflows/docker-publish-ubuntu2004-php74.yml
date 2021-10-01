@@ -48,5 +48,5 @@ jobs:
             BASE_UBUNTU_VERSION=ubuntu:20.04
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=haakco/ubuntu2004-php74:buildcache-x64
-          cache-to: type=registry,ref=haakco/ubuntu2004-php74:buildcache-x64,mode=max
+          cache-from: type=registry,ref=haakco/ubuntu2004-php74:buildcache-ubuntu2004-php74
+          cache-to: type=registry,ref=haakco/ubuntu2004-php74:buildcache-ubuntu2004-php74,mode=max

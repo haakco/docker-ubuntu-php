@@ -48,14 +48,16 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       software-properties-common \
       tzdata \
       && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
@@ -65,14 +67,16 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       postgresql-client \
       && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
@@ -90,8 +94,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       jq \
       logrotate \
       libmaxminddb-dev libmaxminddb0 libssh2-1 lynx libsodium-dev libuuid1 \
-      net-tools \
       mysql-client \
+      net-tools \
       postgresql-client \
       openssl \
       plantuml procps psmisc \
@@ -107,7 +111,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       rsyslog-elasticsearch && \
     update-ca-certificates --fresh && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 #    apt-get -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
 #      ripgrep && \
@@ -151,7 +156,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       php-pear \
       pear-channels \
       && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     test "${PHP_VERSION}" != "8.0" && \
@@ -414,7 +420,8 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-
     apt-get -o Acquire::http::proxy="$PROXY" -y update && \
     apt-get -o Acquire::http::proxy="$PROXY" dist-upgrade  -y && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y fuse && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
@@ -423,7 +430,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
     git lfs install && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 ADD ./files/zshrc/zshrc.in /root/.zshrc
 
@@ -446,7 +454,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" -o Dpkg::Options::="--force-confold" -y install \
         geoip-bin geoip-database geoipupdate && \
     chown -R web:web /usr/share/GeoIP/* && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
@@ -502,7 +511,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
           nginx-extras \
         && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 ADD ./files/nginx_config /site/nginx/config
 
@@ -634,7 +644,8 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       && \
     ssh-keygen -A && \
     mkdir -p /run/sshd && \
-    apt-get -y autoremove
+    apt-get -y autoremove && \
+    apt-get clean all
 
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \

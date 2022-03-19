@@ -108,8 +108,6 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       uuid-dev \
       xz-utils \
       zlib1g-dev zsh zsh-syntax-highlighting && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
-      rsyslog-elasticsearch && \
     update-ca-certificates --fresh && \
     apt-get -y autoremove && \
     apt-get clean all

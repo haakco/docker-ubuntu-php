@@ -165,16 +165,4 @@ sed -Ei \
 ## Rotate logs at start just in case
 /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto &
 
-if [[ "${ELK_METRICBEAT_ACTIVE}" = "TRUE" ]]; then
-  sed -E -i -e 's/ELK_METRICBEAT_ACTIVE/true/' /supervisord.conf
-else
-  sed -E -i -e 's/ELK_METRICBEAT_ACTIVE/false/' /supervisord.conf
-fi
-
-if [[ "${ELK_FILEBEAT_ACTIVE}" = "TRUE" ]]; then
-  sed -E -i -e 's/ELK_FILEBEAT_ACTIVE/true/' /supervisord.conf
-else
-  sed -E -i -e 's/ELK_FILEBEAT_ACTIVE/false/' /supervisord.conf
-fi
-
 /usr/bin/supervisord -n -c /supervisord.conf

@@ -15,6 +15,10 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     TZ="Africa/Johannesburg" \
     PHP_VERSION="$PHP_VERSION"
 
+ENV JOBS="8"
+
+ENV MAKEFLAGS="-j ${JOBS} --load-average=${JOBS}"
+
 RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
 
 RUN echo "PHP_VERSION=${PHP_VERSION}" && \
@@ -22,18 +26,11 @@ RUN echo "PHP_VERSION=${PHP_VERSION}" && \
     echo "PROXY=${PROXY}" && \
     echo ""
 
-RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
-
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
-    echo apt-fast apt-fast/maxdownloads string 10 | debconf-set-selections && \
-    echo apt-fast apt-fast/dlflag boolean true | debconf-set-selections && \
-    echo apt-fast apt-fast/aptmanager string apt-get | debconf-set-selections && \
-    echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       software-properties-common && \
-    add-apt-repository -y ppa:apt-fast/stable && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy locales && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
@@ -48,16 +45,14 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       software-properties-common \
       tzdata \
       && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
@@ -67,22 +62,13 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
       postgresql-client \
       && \
-    apt-get -y autoremove && \
-    apt-get clean all
-
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    echo "deb http://ppa.launchpad.net/maxmind/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/maxmind.list && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DE1997DCDE742AFA && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy \
-      autossh autojump apt-transport-https \
+      autossh apt-transport-https \
       bat bash-completion build-essential \
       bzip2 \
       ca-certificates cron curl \
@@ -93,12 +79,12 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       inetutils-ping inetutils-tools \
       jq \
       logrotate \
-      libmaxminddb-dev libmaxminddb0 libssh2-1 lynx libsodium-dev libuuid1 \
+      libssh2-1 lynx libsodium-dev libuuid1 \
       mysql-client \
       net-tools \
       postgresql-client \
       openssl \
-      plantuml procps psmisc \
+      procps psmisc \
       rsync rsyslog \
       software-properties-common ssl-cert strace sudo supervisor \
       tar telnet thefuck tmux traceroute tree \
@@ -109,8 +95,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       xz-utils \
       zlib1g-dev zsh zsh-syntax-highlighting && \
     update-ca-certificates --fresh && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 #    apt-get -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
 #      ripgrep && \
@@ -135,17 +120,18 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       libidn2-0 libidn2-dev \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
-      php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
+      php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-fpm php${PHP_VERSION}-swoole \
       php${PHP_VERSION}-bcmath \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-dev \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
-      php${PHP_VERSION}-intl \
-      php${PHP_VERSION}-imagick \
+      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
-      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
+      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql php${PHP_VERSION}-mcrypt \
       php${PHP_VERSION}-pgsql \
+      php${PHP_VERSION}-redis \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2  \
+      php${PHP_VERSION}-xdebug \
       php${PHP_VERSION}-xml \
       php${PHP_VERSION}-zip \
     && \
@@ -155,17 +141,9 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       pear-channels \
       && \
     apt-get -y autoremove && \
-    apt-get clean all
-
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    test "${PHP_VERSION}" != "8.0" && \
-        apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
-        php${PHP_VERSION}-json \
-    && \
-    apt-get -y autoremove || \
-    true
+    echo "extension=redis.so" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
+    echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
+     true
 
 ## To get this to also build older versions of PHP have to do some testing on versions here
 
@@ -173,27 +151,8 @@ ADD ./files/php/20-igbinary.ini "/etc/php/${PHP_VERSION}/mods-available/20-igbin
 ADD ./files/php/10-xdebug.ini "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini"
 
 
-## Finish with true deal is test non match
-## Run if not 5.6 and 7.1
-RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
-    yes | pecl install -f igbinary && \
-    yes | pecl install -f redis && \
-    yes | pecl install -f mcrypt && \
-    yes | pecl install -f xdebug && \
-    yes | pecl install -f swoole && \
-    echo "extension=$(find /usr/lib/php -iname redis.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
-    echo "extension=$(find /usr/lib/php -iname mcrypt.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" && \
-    XDEBUG_LOCATION='zend_extension="'$(find /usr/lib/php -iname xdebug.so | sort -n -r  | head -n 1)'"' && \
-    sed -i -E -e "s|zend_extension.+|${XDEBUG_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini" && \
-    IGBINARY_LOCATION='extension="'$(find /usr/lib/php -iname igbinary.so | sort -n -r  | head -n 1)'"' && \
-    sed -i -E -e "s|extension.+|${IGBINARY_LOCATION}|" "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" && \
-    echo "extension=$(find /usr/lib/php -iname swoole.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" || \
-    true
-
 ## Extra packages recommended by composer install
-## Run if not 5.6 and 7.1
-RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
-    yes | pecl install -f pcov && \
+RUN yes | pecl install -f pcov && \
     yes | pecl install -f protobuf && \
     yes | pecl install -f uuid && \
     echo "extension=$(find /usr/lib/php -iname pcov.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" && \
@@ -208,20 +167,8 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     echo 1 || \
       true
 
-# ## Extra packages recommended by composer install
-# ## Run if not 5.6 and 7.1
-#RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
-#    yes | pecl install -f grpc && \
-#    echo "extension=$(find /usr/lib/php -iname grpc.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" && \
-#    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-grpc.ini" && \
-#    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-grpc.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-grpc.ini" && \
-#    echo 1 || \
-#      true
-
 ## Pecl HTTP Needs to be loaded last
-## Run if not 5.6 and 7.1
-RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
-    yes | pecl install -f raphf && \
+RUN yes | pecl install -f raphf && \
     yes | pecl install -f propro && \
     yes | pecl install -f pecl_http && \
     echo "extension=$(find /usr/lib/php -iname raphf.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" && \
@@ -234,41 +181,6 @@ RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/90-pecl_http.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/90-pecl_http.ini" && \
     echo 1 || \
-      true
-
-## Extra packages recommended by composer install
-## Run if not 5.6 and 7.1
-RUN test "${PHP_VERSION}" != "5.6" && test "${PHP_VERSION}" != "7.1" && \
-    cd /root/src && \
-    mkdir -p /root/.ssh/ && \
-    ssh-keyscan github.com >> ~/.ssh/known_hosts && \
-    git clone --depth 1 https://github.com/maxmind/MaxMind-DB-Reader-php.git && \
-    cd /root/src/MaxMind-DB-Reader-php/ext/ && \
-    phpize && \
-    ./configure && \
-    make && \
-    make install && \
-    echo "extension=$(find /usr/lib/php -iname maxminddb.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-maxminddb.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-maxminddb.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-maxminddb.ini" && \
-    echo 1 || \
-      true
-
-## Finish with true deal is test non match
-## Run if is 5.6 or 7.1
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    test "${PHP_VERSION}" = '5.6' || test "${PHP_VERSION}" = '7.1' && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
-      php${PHP_VERSION}-redis \
-      php${PHP_VERSION}-igbinary \
-      php${PHP_VERSION}-xdebug \
-      php${PHP_VERSION}-mcrypt \
-    && \
-    apt-get -y autoremove && \
-    echo "extension=redis.so" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
-    echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
       true
 
 ## Finish with true to deal with files not being there
@@ -410,17 +322,6 @@ RUN sed -Ei \
         -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
-RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O /rclone-current-linux-amd64.zip && \
-    unzip /rclone-current-linux-amd64.zip -d / && \
-    mv /rclone-v* /rclone && \
-    cp /rclone/rclone /usr/local/bin/ && \
-    rm -rf /rclone* && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y update && \
-    apt-get -o Acquire::http::proxy="$PROXY" dist-upgrade  -y && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -y fuse && \
-    apt-get -y autoremove && \
-    apt-get clean all
-
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     add-apt-repository -y ppa:git-core/ppa && \
@@ -428,8 +329,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
     apt-get -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
     git lfs install && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 ADD ./files/zshrc/zshrc.in /root/.zshrc
 
@@ -441,19 +341,6 @@ RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/
     mkdir -p /site/logs/supervisor && \
     find /site -not -user web -execdir chown "web:" {} \+
 
-ADD ./files/GeoIp/GeoIP.conf /etc/GeoIP.conf
-ADD ./files/GeoIp /usr/share/GeoIP
-
-# Fix for no missing repository
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    cd /usr/share/GeoIP/ && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    /usr/bin/tar -xJpvf GeoIp.tar.xz && \
-    apt-get -o Acquire::http::proxy="$PROXY" -o Dpkg::Options::="--force-confold" -y install \
-        geoip-bin geoip-database geoipupdate && \
-    chown -R web:web /usr/share/GeoIP/* && \
-    apt-get -y autoremove && \
-    apt-get clean all
 
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
@@ -509,8 +396,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -o Acquire::http::proxy="$PROXY" -y install \
           nginx-extras \
         && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 ADD ./files/nginx_config /site/nginx/config
 
@@ -530,22 +416,13 @@ USER web
 #    Not needed for new composer
 #    composer global require hirak/prestissimo && \
 
-RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}" && \
-    composer global require 'phpmetrics/phpmetrics'
-
-RUN test "${PHP_VERSION}" != "8.0" && \
-    composer global require povils/phpmnd || \
-    true
+RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}"
 
 USER root
 
-RUN /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP && \
-    chown -R web: /usr/share/GeoIP/*
-
 ADD ./files/logrotate.d/ /etc/logrotate.d/
 
-RUN find /site -not -user web -execdir chown "web:" {} \+ && \
-    find /usr/share/GeoIP -not -user web -execdir chown "web:" {} \+
+RUN find /site -not -user web -execdir chown "web:" {} \+
 
 RUN chmod -R a+w /dev/stdout && \
     chmod -R a+w /dev/stderr && \
@@ -587,7 +464,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
 
 # Install node for headless testing
 
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
     apt-get -y autoremove
 
@@ -642,8 +519,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       && \
     ssh-keygen -A && \
     mkdir -p /run/sshd && \
-    apt-get -y autoremove && \
-    apt-get clean all
+    apt-get -y autoremove
 
 ENV NGINX_SITES='locahost' \
     CRONTAB_ACTIVE="FALSE" \

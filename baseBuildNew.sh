@@ -12,8 +12,6 @@ echo "Tagged as : ${IMAGE_NAME}"
 echo ""
 echo ""
 
-eval  $(docker-machine env blue)
-
 docker context create blue --default-stack-orchestrator=swarm --docker "host=${DOCKER_HOST},ca=${DOCKER_CERT_PATH}/ca.pem,cert=${DOCKER_CERT_PATH}/cert.pem,key=${DOCKER_CERT_PATH}/key.pem"
 docker context use blue
 docker buildx create blue --name blue --driver docker-container --use
@@ -22,8 +20,14 @@ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 docker run --privileged --rm tonistiigi/binfmt --install all
 docker buildx inspect --bootstrap
 
+export CACHE_DIR="${CACHE_DIR-/tmp/haakco}"
+
+export CACHE_FROM=" --cache-from=type=local,src=${CACHE_DIR}"
+export CACHE_FROM="${CACHE_FROM} --cache-to=type=local,dest=${CACHE_DIR}"
+
 #
-CMD='docker buildx build --push --platform  linux/arm64,linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
+CMD='docker buildx build --load '"${CACHE_FROM}"' --platform  linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
+#CMD='docker buildx build --push --platform  linux/arm64,linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
 #CMD='docker buildx build --push --platform  linux/amd64 --build-arg BASE_UBUNTU_VERSION='"${BASE_UBUNTU_VERSION}"' --build-arg PHP_VERSION='"${PHP_VERSION}"' --build-arg PROXY='"${PROXY}"' --tag '"${IMAGE_NAME}"' .'
 
 echo "Build commmand: ${CMD}"

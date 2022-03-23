@@ -106,7 +106,6 @@ chmod 600 /root/.ssh/authorized_keys
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 # m h  dom mon dow   command
 0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto 2>&1 | /dev/stdout
-10 4 * * 6 /usr/bin/geoipupdate -v --config-file /etc/GeoIP.conf -d /usr/share/GeoIP; chown -R web: /usr/share/GeoIP/*
 
 #rename on start
 @reboot find /site/web/.env -not -user web -execdir chown "web:" {} \+ 2>&1 | /dev/stdout

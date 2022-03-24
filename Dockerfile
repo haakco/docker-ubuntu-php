@@ -468,10 +468,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
     apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
     apt-get -y autoremove
 
-RUN npm -g install \
-      npm-check-updates \
-      node-gyp
-
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     add-apt-repository -y ppa:savoury1/graphics && \

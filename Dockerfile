@@ -534,9 +534,11 @@ ENV NGINX_SITES='locahost' \
 
 ADD ./files/healthCheck.sh /healthCheck.sh
 
-ENV TINI_VERSION v0.19.0
+#ENV TINI_VERSION v0.19.0
+#
+#ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ADD ./files/tini /tini
 RUN chmod +x /tini
 
 RUN chown web: /healthCheck.sh && \

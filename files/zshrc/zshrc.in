@@ -112,10 +112,6 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-alias ls="exa --time-style=long-iso"
-alias cat=bat
-alias ping=prettyping
-
 cd /site/web
 
 #speedup paste

@@ -97,17 +97,6 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     update-ca-certificates --fresh && \
     apt-get -y autoremove
 
-#    apt-get -o Acquire::http::proxy="$PROXY" install -qy --force-yes \
-#      ripgrep && \
-
-RUN mkdir -p /root/src/exa && \
-    EXA_FILE_NAME=$(curl -sL https://api.github.com/repos/ogham/exa/releases/latest | jq -r '.assets[].browser_download_url' | grep linux-x86_64-v) && \
-    wget -O "/root/src/exa/exa-linux-x86_64.zip" "${EXA_FILE_NAME}" && \
-    cd /root/src/exa/ && \
-    unzip exa-linux-x86_64.zip && \
-    mv /root/src/exa/bin/exa /usr/local/bin/exa && \
-    chmod 0755 /usr/local/bin/exa && \
-    rm -rf /root/src/exa
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     apt-get -o Acquire::http::proxy="$PROXY" update && \

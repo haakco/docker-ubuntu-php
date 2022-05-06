@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: haakco/ubuntu2004-php74
           tags: |

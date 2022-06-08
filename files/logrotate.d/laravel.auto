@@ -1,12 +1,12 @@
 /site/web/storage/logs/laravel.log
 {
-        weekly
         missingok
-        rotate 7
+        rotate 24
         compress
+        create
         delaycompress
         nomail
         notifempty
         copytruncate
-        size 250M
+        minsize 50M
 }

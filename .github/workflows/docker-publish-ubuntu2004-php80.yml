@@ -44,7 +44,8 @@ jobs:
           platforms: linux/amd64,linux/arm64/v8
           build-args:   |
             PHP_VERSION=8.0
-            BASE_UBUNTU_VERSION=ubuntu:20.04
+            BASE_IMAGE_NAME=ubuntu
+            BASE_IMAGE_TAG=20.04
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=haakco/ubuntu2004-php80:buildcache-ubuntu2004-php80

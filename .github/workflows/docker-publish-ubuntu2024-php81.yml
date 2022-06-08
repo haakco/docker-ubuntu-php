@@ -1,4 +1,4 @@
-name: Publish haakco/ubuntu2024-php80 Docker image
+name: Publish haakco/ubuntu2024-php81 Docker image
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   push_to_registry:
-    name: Push Docker image haakco/ubuntu2024-php80 to Docker Hub
+    name: Push Docker image haakco/ubuntu2024-php81 to Docker Hub
     runs-on: [ self-hosted, Linux, X64 ]
     steps:
       - name: Check out the repo
@@ -19,7 +19,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: haakco/ubuntu2024-php80
+          images: haakco/ubuntu2024-php81
           tags: |
             type=raw,value={{branch}}-{{sha}}
             type=raw,value=latest
@@ -43,9 +43,9 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64/v8
           build-args:   |
-            PHP_VERSION=8.0
-            BASE_UBUNTU_VERSION=ubuntu:22.04
+            PHP_VERSION=8.1
+            BASE_UBUNTU_VERSION=ubuntu:20.24
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=haakco/ubuntu2024-php80:buildcache-ubuntu2024-php80
-          cache-to: type=registry,ref=haakco/ubuntu2024-php80:buildcache-ubuntu2024-php80,mode=max
+          cache-from: type=registry,ref=haakco/ubuntu2024-php81:buildcache-ubuntu2024-php81
+          cache-to: type=registry,ref=haakco/ubuntu2024-php81:buildcache-ubuntu2024-php81,mode=max

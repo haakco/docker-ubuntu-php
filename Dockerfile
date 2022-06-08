@@ -1,4 +1,4 @@
-# syntax = docker/dockerfile:1.2
+# syntax = docker/dockerfile:1.3
 ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
 
 FROM ${BASE_UBUNTU_VERSION}

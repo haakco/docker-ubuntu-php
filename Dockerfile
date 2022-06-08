@@ -376,9 +376,6 @@ RUN mkdir -p /site/tmp && \
     find /site/.bash_profile -not -user web -execdir chown "web:" {} \+ && \
     find /site/tmp -not -user web -execdir chown "web:" {} \+
 
-#add-apt-repository --yes --no-update ppa:nginx/stable && \
-#    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B3981E7A6852F782CC4951600A6F0A3C300EE8C && \
-
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     apt-get -o Acquire::http::proxy="$PROXY" update && \
     apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
@@ -521,13 +518,6 @@ ENV NGINX_SITES='locahost' \
 
 ADD ./files/healthCheck.sh /healthCheck.sh
 
-#ENV TINI_VERSION v0.19.0
-#
-#ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-
-ADD ./files/tini /tini
-RUN chmod +x /tini
-
 RUN chown web: /healthCheck.sh && \
     chmod a+x /healthCheck.sh
 
@@ -538,6 +528,5 @@ HEALTHCHECK \
   --retries=10 \
   CMD /healthCheck.sh
 
-ENTRYPOINT ["/tini", "--"]
 
 CMD ["/start.sh"]

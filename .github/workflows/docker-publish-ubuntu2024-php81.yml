@@ -44,7 +44,7 @@ jobs:
           platforms: linux/amd64,linux/arm64/v8
           build-args:   |
             PHP_VERSION=8.1
-            BASE_UBUNTU_VERSION=ubuntu:22.24
+            BASE_UBUNTU_VERSION=ubuntu:22.04
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=haakco/ubuntu2024-php81:buildcache-ubuntu2024-php81

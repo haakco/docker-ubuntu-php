@@ -1,19 +1,23 @@
-# syntax = docker/dockerfile:1.3
-ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
+# syntax=docker/dockerfile:1.3
+ARG BASE_IMAGE_NAME=""
+ARG BASE_IMAGE_TAG=""
 
-FROM ${BASE_UBUNTU_VERSION}
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
-ARG BASE_UBUNTU_VERSION='ubuntu:20.04'
+ARG BASE_IMAGE_NAME=""
+ARG BASE_IMAGE_TAG=""
 ARG PHP_VERSION='8.0'
-ARG PROXY=''
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8" \
     LC_ALL="C.UTF-8" \
     TERM="xterm" \
-    TZ="Africa/Johannesburg" \
-    PHP_VERSION="$PHP_VERSION"
+    TZ="UTC"
+
+ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
+    BASE_IMAGE_TAG="${BASE_IMAGE_TAG}" \
+    PHP_VERSION="${PHP_VERSION}"
 
 ENV JOBS="8"
 
@@ -21,26 +25,26 @@ ENV MAKEFLAGS="-j ${JOBS} --load-average=${JOBS}"
 
 RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
 
-RUN echo "PHP_VERSION=${PHP_VERSION}" && \
-    echo "BASE_UBUNTU_VERSION=${BASE_UBUNTU_VERSION}" && \
-    echo "PROXY=${PROXY}" && \
+RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
+    echo "BASE_IMAGE_TAG=${BASE_IMAGE_TAG}" && \
+    echo "PHP_VERSION=${PHP_VERSION}" && \
     echo ""
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get update && \
+    apt-get install -qy \
       software-properties-common && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy locales && \
+    apt-get update && \
+    apt-get install -qy locales && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
     locale-gen en_ZA.UTF-8 && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get -qy dist-upgrade && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get install -qy \
       apt-transport-https \
       software-properties-common \
       tzdata \
@@ -50,24 +54,24 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
     apt-get -y autoremove
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy \
       postgresql-client \
       && \
     apt-get -y autoremove
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy \
       autossh apt-transport-https \
       bat bash-completion build-essential \
       bzip2 \
@@ -99,13 +103,14 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
 
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    \
+    apt-get -y install \
       libbrotli-dev libbrotli1 \
       libcurl4 libcurl4-openssl-dev \
-      libicu66 libicu-dev \
-      libidn11 libidn11-dev \
+      libicu[67]* libicu-* \
+      libidn1* libidn1*-dev \
       libidn2-0 libidn2-dev \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
@@ -125,7 +130,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       php${PHP_VERSION}-zip \
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -y \
+    apt-get install -y \
       php-pear \
       pear-channels \
       && \
@@ -314,9 +319,9 @@ RUN sed -Ei \
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     add-apt-repository -y ppa:git-core/ppa && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy git-lfs && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy git-lfs && \
     git lfs install && \
     apt-get -y autoremove
 
@@ -377,9 +382,9 @@ RUN mkdir -p /site/tmp && \
     find /site/tmp -not -user web -execdir chown "web:" {} \+
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
           nginx-extras \
         && \
     apt-get -y autoremove
@@ -422,9 +427,9 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
           google-chrome-stable \
           fonts-liberation \
           libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
@@ -436,9 +441,9 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
           chromium-browser \
           fonts-liberation \
           libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
@@ -451,7 +456,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
 # Install node for headless testing
 
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -y nodejs && \
+    apt-get install -y nodejs && \
     apt-get -y autoremove
 
 RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
@@ -461,9 +466,9 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     add-apt-repository -y ppa:savoury1/graphics && \
     add-apt-repository -y ppa:savoury1/multimedia && \
     add-apt-repository -y ppa:savoury1/ffmpeg4 && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
           ffmpeg \
         && \
     apt-get -y autoremove || \
@@ -471,18 +476,18 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
     test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" -y install \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
           ffmpeg \
         && \
     apt-get -y autoremove || \
     true
 
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy \
       gifsicle \
       jpegoptim \
       optipng \
@@ -490,15 +495,15 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       gifsicle \
       webp \
       && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get install -qy \
       rsyslog-elasticsearch && \
     apt-get -y autoremove
 
 # Add openssh
 RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get -o Acquire::http::proxy="$PROXY" update && \
-    apt-get -o Acquire::http::proxy="$PROXY" -qy dist-upgrade && \
-    apt-get -o Acquire::http::proxy="$PROXY" install -qy \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy \
       openssh-server \
       && \
     ssh-keygen -A && \

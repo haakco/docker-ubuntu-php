@@ -6,7 +6,7 @@ FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 
 ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_TAG=""
-ARG PHP_VERSION='8.0'
+ARG PHP_VERSION=''
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
@@ -207,7 +207,7 @@ RUN find "/etc/php/${PHP_VERSION}/fpm" -iname '*igbinary*' -delete && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-swoole.ini" && \
     ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-swoole.ini"
 
-ENV PHP_TIMEZONE="Africa/Johannesburg" \
+ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="128M" \
     PHP_POST_MAX_SIZE="128M" \
     PHP_MEMORY_LIMIT="3G" \

@@ -119,14 +119,15 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-dev \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
+      php${PHP_VERSION}-http \
       php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql php${PHP_VERSION}-mcrypt \
-      php${PHP_VERSION}-pgsql \
-      php${PHP_VERSION}-redis \
-      php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2  \
-      php${PHP_VERSION}-xdebug \
-      php${PHP_VERSION}-xml \
+      php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql php${PHP_VERSION}-protobuf \
+      php${PHP_VERSION}-raphf php${PHP_VERSION}-redis \
+      php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 php${PHP_VERSION}-swoole \
+      php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml \
+      php${PHP_VERSION}-uuid \
       php${PHP_VERSION}-zip \
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
@@ -139,73 +140,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
      true
 
-## To get this to also build older versions of PHP have to do some testing on versions here
-
-ADD ./files/php/20-igbinary.ini "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini"
 ADD ./files/php/10-xdebug.ini "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini"
-
-
-## Extra packages recommended by composer install
-RUN yes | pecl install -f pcov && \
-    yes | pecl install -f protobuf && \
-    yes | pecl install -f uuid && \
-    echo "extension=$(find /usr/lib/php -iname pcov.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-pcov.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-pcov.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-pcov.ini" && \
-    echo "extension=$(find /usr/lib/php -iname protobuf.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-protobuf.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-protobuf.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-protobuf.ini" && \
-    echo "extension=$(find /usr/lib/php -iname uuid.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-uuid.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-uuid.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-uuid.ini" && \
-    echo 1 || \
-      true
-
-## Pecl HTTP Needs to be loaded last
-RUN yes | pecl install -f raphf && \
-    yes | pecl install -f propro && \
-    yes | pecl install -f pecl_http && \
-    echo "extension=$(find /usr/lib/php -iname raphf.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-raphf.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-raphf.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-raphf.ini" && \
-    echo "extension=$(find /usr/lib/php -iname propro.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/20-propro.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-propro.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-propro.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-propro.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-propro.ini" && \
-    echo "extension=$(find /usr/lib/php -iname http.so | sort -n -r  | head -n 1)" > "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/90-pecl_http.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/90-pecl_http.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/90-pecl_http.ini" && \
-    echo 1 || \
-      true
-
-## Finish with true to deal with files not being there
-## Move system files to back up just in case
-RUN mkdir -p "/etc/php/${PHP_VERSION}/mods-available/bak" && \
-    mv "/etc/php/${PHP_VERSION}/mods-available/redis.ini*" "/etc/php/${PHP_VERSION}/mods-available/bak/" 2>/dev/null && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" "/etc/php/${PHP_VERSION}/mods-available/redis.ini" && \
-    mv "/etc/php/${PHP_VERSION}/mods-available/mcrypt.ini*" "/etc/php/${PHP_VERSION}/mods-available/bak/" 2>/dev/null && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" "/etc/php/${PHP_VERSION}/mods-available/mcrypt.ini" && \
-    mv "/etc/php/${PHP_VERSION}/mods-available/igbinary.ini*" "/etc/php/${PHP_VERSION}/mods-available/bak/" 2>/dev/null && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" "/etc/php/${PHP_VERSION}/mods-available/igbinary.ini" && \
-    mv "/etc/php/${PHP_VERSION}/mods-available/xdebug.ini*" "/etc/php/${PHP_VERSION}/mods-available/bak/" 2>/dev/null && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini" "/etc/php/${PHP_VERSION}/mods-available/xdebug.ini" || \
-      true
-
-RUN find "/etc/php/${PHP_VERSION}/fpm" -iname '*igbinary*' -delete && \
-    find "/etc/php/${PHP_VERSION}/cli" -iname '*igbinary*' -delete && \
-    find "/etc/php/${PHP_VERSION}/fpm" -iname '*xdebug*' -delete && \
-    find "/etc/php/${PHP_VERSION}/cli" -iname '*xdebug*' -delete && \
-    find "/etc/php/${PHP_VERSION}/fpm" -iname '*redis*' -delete && \
-    find "/etc/php/${PHP_VERSION}/cli" -iname '*redis*' -delete && \
-    find "/etc/php/${PHP_VERSION}/cli" -iname '*swoole*' -delete && \
-    find "/etc/php/${PHP_VERSION}/fpm" -iname '*swoole*' -delete && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-igbinary.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-igbinary.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-igbinary.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-redis.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-redis.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-mcrypt.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-mcrypt.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/20-swoole.ini" && \
-    ln -sf "/etc/php/${PHP_VERSION}/mods-available/20-swoole.ini" "/etc/php/${PHP_VERSION}/fpm/conf.d/20-swoole.ini"
 
 ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="128M" \

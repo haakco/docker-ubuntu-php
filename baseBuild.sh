@@ -12,13 +12,13 @@ export CACHE_FROM="${CACHE_FROM} --cache-from=type=registry,ref=${BUILD_IMAGE_NA
 #export CACHE_FROM="${CACHE_FROM} --cache-to=type=local,dest=${CACHE_DIR}"
 export CACHE_FROM="${CACHE_FROM} --cache-to=type=registry,ref=${BUILD_IMAGE_NAME}:buildcache,mode=max"
 
-BUILD_TYPE_FLAG=" --load "
-#BUILD_TYPE_FLAG=" --push "
+#BUILD_TYPE_FLAG=" --load "
+BUILD_TYPE_FLAG=" --push "
 export BUILD_TYPE_FLAG
 
 PLATFORM=""
-#PLATFORM=" --platform  linux/arm64/v8,linux/amd64 "
-PLATFORM=" --platform  linux/arm64/v8 "
+PLATFORM=" --platform  linux/arm64/v8,linux/amd64 "
+#PLATFORM=" --platform  linux/arm64/v8 "
 #PLATFORM=" --platform linux/amd64 "
 export PLATFORM
 

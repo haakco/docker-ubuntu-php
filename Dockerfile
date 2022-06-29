@@ -30,8 +30,7 @@ RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
     echo "PHP_VERSION=${PHP_VERSION}" && \
     echo ""
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
     apt-get install -qy \
       software-properties-common && \
@@ -51,15 +50,13 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    add-apt-repository -y ppa:ondrej/php && \
+RUN add-apt-repository -y ppa:ondrej/php && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
@@ -68,12 +65,10 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       && \
     apt-get -y autoremove
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get update && \
+RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
-      autossh apt-transport-https \
-      bat bash-completion build-essential \
+      bash-completion build-essential \
       bzip2 \
       ca-certificates cron curl \
       dos2unix dnsutils \
@@ -83,27 +78,26 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
       inetutils-ping inetutils-tools \
       jq \
       logrotate \
-      libssh2-1 lynx libsodium-dev libuuid1 \
+      libssh2-1 libsodium-dev libuuid1 \
       mysql-client \
       net-tools \
       postgresql-client \
       openssl \
       procps psmisc \
       rsync rsyslog \
-      software-properties-common ssl-cert strace sudo supervisor \
-      tar telnet thefuck tmux traceroute tree \
+      sudo supervisor \
+      tar telnet tmux traceroute tree \
       unzip \
       wget whois \
       vim \
       uuid-dev \
       xz-utils \
-      zlib1g-dev zsh zsh-syntax-highlighting && \
+      zlib1g-dev && \
     update-ca-certificates --fresh && \
     apt-get -y autoremove
 
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get update && \
+RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     \
     apt-get -y install \
@@ -252,8 +246,7 @@ RUN sed -Ei \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
 #    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    add-apt-repository -y ppa:git-core/ppa && \
+RUN add-apt-repository -y ppa:git-core/ppa && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy git-lfs && \
@@ -316,8 +309,7 @@ RUN mkdir -p /site/tmp && \
     find /site/.bash_profile -not -user web -execdir chown "web:" {} \+ && \
     find /site/tmp -not -user web -execdir chown "web:" {} \+
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get update && \
+RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y install \
           nginx-extras \
@@ -358,8 +350,7 @@ RUN chmod -R a+w /dev/stdout && \
 
 # Install chrome for headless testing
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
     apt-get update && \
@@ -374,8 +365,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -y autoremove || \
     true
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y install \
@@ -396,8 +386,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
 
 RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     add-apt-repository -y ppa:savoury1/graphics && \
     add-apt-repository -y ppa:savoury1/multimedia && \
     add-apt-repository -y ppa:savoury1/ffmpeg4 && \
@@ -409,8 +398,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -y autoremove || \
     true
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y install \
@@ -419,8 +407,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -y autoremove || \
     true
 
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get update && \
+RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
       gifsicle \
@@ -435,8 +422,7 @@ RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=ty
     apt-get -y autoremove
 
 # Add openssh
-RUN --mount=type=cache,sharing=locked,id=ubuntu,target=/var/cache/apt --mount=type=cache,sharing=locked,id=ubuntu,target=/var/lib/apt \
-    apt-get update && \
+RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
       openssh-server \

@@ -16,9 +16,11 @@ BUILD_TYPE_FLAG=" --load "
 #BUILD_TYPE_FLAG=" --push "
 export BUILD_TYPE_FLAG
 
-#export PLATFORM=" --platform  linux/arm64/v8,linux/amd64 "
-#export PLATFORM=" --platform  linux/arm64/v8 "
-#export PLATFORM=" --platform linux/amd64 "
+PLATFORM=""
+#PLATFORM=" --platform  linux/arm64/v8,linux/amd64 "
+PLATFORM=" --platform  linux/arm64/v8 "
+#PLATFORM=" --platform linux/amd64 "
+export PLATFORM
 
 CMD='docker buildx build --rm --pull  '"${PLATFORM}"' '"${BUILD_TYPE_FLAG}"' '"${CACHE_FROM}"' --file '"${DOCKER_FILE}"' -t '"${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG}"' '"${EXTRA_FLAG}"' .'
 

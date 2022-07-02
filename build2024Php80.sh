@@ -14,10 +14,10 @@ export SCRIPT_DIR
 export IMAGE_NAME=''
 
 export BASE_IMAGE_NAME='ubuntu'
-export BASE_IMAGE_TAG='20.04'
-export PHP_VERSION='8.1'
+export BASE_IMAGE_TAG='22.04'
+export PHP_VERSION='8.0'
 
-export BUILD_IMAGE_NAME="haakco/ubuntu2004-php81"
+export BUILD_IMAGE_NAME="haakco/ubuntu2204-php80"
 export BUILD_IMAGE_TAG="latest"
 
 EXTRA_FLAG="${EXTRA_FLAG} --build-arg BASE_IMAGE_NAME=${BASE_IMAGE_NAME}"

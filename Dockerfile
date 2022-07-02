@@ -99,9 +99,8 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get -qy dist-upgrade && \
-    \
     apt-get -y install \
-      php7.4-propro \
+      php7.4-propro && \
     apt-get -y autoremove
 
 

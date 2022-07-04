@@ -373,7 +373,7 @@ RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
     true
 
 RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
-    add-apt-repository ppa:saiarcot895/chromium-beta -y \
+    add-apt-repository ppa:saiarcot895/chromium-beta -y && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y install \

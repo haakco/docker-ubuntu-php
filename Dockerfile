@@ -357,23 +357,36 @@ RUN chmod -R a+w /dev/stdout && \
 
 # Install chrome for headless testing
 
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-          google-chrome-stable \
-          fonts-liberation \
-          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
-          libappindicator1 \
-          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
-        && \
-    apt-get -y autoremove || \
-    true
+#RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
+#    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+#    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
+#    apt-get update && \
+#    apt-get -qy dist-upgrade && \
+#    apt-get -y install \
+#          google-chrome-stable \
+#          fonts-liberation \
+#          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
+#          libappindicator1 \
+#          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
+#        && \
+#    apt-get -y autoremove || \
+#    true
 
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
-    add-apt-repository ppa:saiarcot895/chromium-beta -y && \
+#RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
+#    add-apt-repository ppa:saiarcot895/chromium-beta -y && \
+#    apt-get update && \
+#    apt-get -qy dist-upgrade && \
+#    apt-get -y install \
+#          chromium-browser \
+#          fonts-liberation \
+#          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
+#          libappindicator1 \
+#          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
+#        && \
+#    apt-get -y autoremove || \
+#    true
+
+RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y install \
@@ -388,7 +401,7 @@ RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
 
 # Install node for headless testing
 
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && \
     apt-get install -y nodejs && \
     apt-get -y autoremove
 

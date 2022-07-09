@@ -28,9 +28,9 @@ echo "Build command: ${CMD}"
 echo ""
 ${CMD}
 
-#DOCKER_PULL_CMD='docker pull '"${BUILD_IMAGE_NAME}"':'"${BUILD_IMAGE_TAG}"''
-#echo "Pull command: ${DOCKER_PULL_CMD}"
-#${DOCKER_PULL_CMD}
+DOCKER_PULL_CMD='docker pull '"${BUILD_IMAGE_NAME}"':'"${BUILD_IMAGE_TAG}"''
+echo "Pull command: ${DOCKER_PULL_CMD}"
+${DOCKER_PULL_CMD}
 
 #DOCKER_PUSH_CMD='docker push '"${BUILD_IMAGE_NAME}"':'"${BUILD_IMAGE_TAG}"''
 #echo "Push command: ${DOCKER_PUSH_CMD}"

@@ -453,7 +453,6 @@ RUN apt-get update && \
     apt-get -y autoremove
 
 ENV NGINX_SITES='locahost' \
-    CRONTAB_ACTIVE="FALSE" \
     ENABLE_DEBUG="FALSE" \
     GEN_LV_ENV="FALSE" \
     INITIALISE_FILE="/site/web/initialise.sh" \

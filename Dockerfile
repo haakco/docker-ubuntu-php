@@ -401,7 +401,7 @@ RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
 
 # Install node for headless testing
 
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
     apt-get install -y nodejs && \
     apt-get -y autoremove
 

@@ -155,6 +155,7 @@ chmod -R a+w /dev/stdin
 find /site -not -user web -execdir chown "web:" {} \+
 
 if [[ -e "${INITIALISE_FILE}" ]]; then
+  mkdir -p /root/.composer
   chown web: "${INITIALISE_FILE}"
   chmod u+x "${INITIALISE_FILE}"
   chmod a+r /root/.composer

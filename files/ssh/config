@@ -1,0 +1,32 @@
+Host ssh.dev.azure.com
+  ControlMaster no
+  ControlPath none
+  HostkeyAlgorithms +ssh-rsa
+  PubkeyAcceptedAlgorithms +ssh-rsa
+#  IdentityFile ~/.ssh/id_rsa
+
+Host vs-ssh.visualstudio.com
+  ControlMaster no
+  ControlPath none
+  HostkeyAlgorithms +ssh-rsa
+  PubkeyAcceptedAlgorithms +ssh-rsa
+#  IdentityFile ~/.ssh/id_rsa
+
+Host *
+  IgnoreUnknown AddKeysToAgent,UseKeychain
+  AddKeysToAgent yes
+  ControlMaster auto
+  ControlPath ~/.ssh/%r_%h_%p
+  ControlPersist 5m
+
+  # Get rid of SSH connection delays
+  GSSAPIAuthentication no
+
+  ServerAliveInterval 15
+  ServerAliveCountMax 4
+
+  ControlPersist 10m
+  IdentityFile ~/.ssh/id_rsa
+  IdentityFile ~/.ssh/id_ed25519
+  IdentityFile ~/key-file/private_key
+  ForwardAgent yes

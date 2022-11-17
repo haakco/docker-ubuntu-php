@@ -453,6 +453,17 @@ RUN apt-get update && \
     mkdir -p /run/sshd && \
     apt-get -y autoremove
 
+# Add openssh
+RUN apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy \
+      dumb-init \
+      && \
+    ssh-keygen -A && \
+    mkdir -p /run/sshd && \
+    mkdir -p /run/sshd && \
+    apt-get -y autoremove
+
 RUN mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
@@ -490,6 +501,8 @@ HEALTHCHECK \
   --start-period=15s \
   --retries=10 \
   CMD /healthCheck.sh
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 
 CMD ["/start.sh"]

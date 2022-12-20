@@ -6,7 +6,7 @@ on:
       - master
   workflow_dispatch:
   schedule:
-    - cron: '30 00 * * 6'
+    - cron: '30 20 * * 6'
 
 jobs:
   push_to_registry:

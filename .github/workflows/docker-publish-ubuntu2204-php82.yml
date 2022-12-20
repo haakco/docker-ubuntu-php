@@ -22,4 +22,4 @@ jobs:
       PHP_VERSION: 8.2
     secrets:
       REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD_2204_80_X64 }}
+      REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD_2204_82_X64 }}

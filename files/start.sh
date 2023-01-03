@@ -106,6 +106,14 @@ chmod 700 /root/.ssh
 
 if [[ ! -z "${SSH_AUTHORIZED_KEYS}" ]];then
   echo "${SSH_AUTHORIZED_KEYS}" > /root/.ssh/authorized_keys
+  chmod 700 /root/.ssh
+  chmod 600 /root/.ssh/authorized_keys
+  chown -R root:root /root/.ssh
+
+  chown -R web:web /site/.ssh
+  chmod 700 /site/.ssh
+  echo "${SSH_AUTHORIZED_KEYS}" > /site/.ssh/authorized_keys
+  chmod 600 /site/.ssh/authorized_keys
 fi
 
 chown root: /root/.ssh/authorized_keys

@@ -462,22 +462,19 @@ RUN apt-get update && \
     mkdir -p /run/sshd && \
     apt-get -y autoremove
 
-# Add openssh
+# Add dumb-init
 RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
       dumb-init \
       && \
-    ssh-keygen -A && \
-    mkdir -p /run/sshd && \
-    mkdir -p /run/sshd && \
     apt-get -y autoremove
 
 RUN mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
     chmod 600 /root/.ssh/authorized_keys && \
-    chown -R web:web /root/.ssh
+    chown -R root:root /root/.ssh
 
 COPY --chown=root: ./files/ssh/config /root/.ssh/config
 

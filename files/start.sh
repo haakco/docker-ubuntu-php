@@ -131,7 +131,7 @@ EndOfMessage
 
 if [[ "${ENABLE_CRONTAB}" = "TRUE" ]]; then
  cat >> ${TEMP_CRON_FILE} <<- EndOfMessage
-* * * * * su web -c '/usr/bin/php /site/web/artisan schedule:run' 2>&1 >> /site/logs/cron.log
+* * * * * su web -c '/usr/bin/php /site/web/artisan schedule:run' 2>&1 >> /dev/stdout
 EndOfMessage
 fi
 
@@ -167,7 +167,7 @@ if [[ -e "${INITIALISE_FILE}" ]]; then
   chown web: "${INITIALISE_FILE}"
   chmod u+x "${INITIALISE_FILE}"
   chmod a+r /root/.composer
-  su web --preserve-environment -c "${INITIALISE_FILE}" >> /site/logs/initialise.log
+  su web --preserve-environment -c "${INITIALISE_FILE}" >> /dev/stdout
 fi
 
 sed -Ei \

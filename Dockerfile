@@ -83,7 +83,7 @@ RUN apt-get update && \
       net-tools \
       postgresql-client \
       openssl \
-      procps psmisc \
+      pip procps psmisc \
       rsync rsyslog \
       sudo supervisor \
       tar telnet tmux traceroute tree \
@@ -458,14 +458,6 @@ RUN apt-get update && \
     ssh-keygen -A && \
     mkdir -p /run/sshd && \
     mkdir -p /run/sshd && \
-    apt-get -y autoremove
-
-# Add dumb-init
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
-      pip \
-      && \
     apt-get -y autoremove
 
 # Add dumb-init

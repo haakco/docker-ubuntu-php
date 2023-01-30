@@ -447,8 +447,6 @@ RUN apt-get update && \
       gifsicle \
       webp \
       && \
-    apt-get install -qy \
-      rsyslog-elasticsearch && \
     apt-get -y autoremove
 
 # Add openssh
@@ -460,6 +458,14 @@ RUN apt-get update && \
     ssh-keygen -A && \
     mkdir -p /run/sshd && \
     mkdir -p /run/sshd && \
+    apt-get -y autoremove
+
+# Add dumb-init
+RUN apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get install -qy \
+      pip \
+      && \
     apt-get -y autoremove
 
 # Add dumb-init

@@ -276,7 +276,6 @@ RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/
     usermod -a -G tty web && \
     mkdir -p /site/web && \
     mkdir -p /site/logs/php && \
-    mkdir -p /site/logs/supervisor && \
     find /site -not -user web -execdir chown "web:" {} \+
 
 

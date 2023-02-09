@@ -2,7 +2,6 @@
 mkdir -p /site/web
 mkdir -p /site/logs/php
 mkdir -p /site/logs/nginx
-mkdir -p /site/logs/supervisor
 mkdir -p /run/php
 
 export PHP_VERSION=${PHP_VERSION:-"7.4"}

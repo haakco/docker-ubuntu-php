@@ -115,7 +115,7 @@ RUN apt-get update && \
       libidn2-0 libidn2-dev \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
-      php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-fpm php${PHP_VERSION}-swoole \
+      php${PHP_VERSION}-cli php${PHP_VERSION}-fpm php${PHP_VERSION}-swoole \
       php${PHP_VERSION}-bcmath \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-dev \

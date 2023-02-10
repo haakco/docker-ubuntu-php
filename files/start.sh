@@ -124,7 +124,7 @@ cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 
 #rename on start
 @reboot find /site/web/.env -not -user web -execdir chown "web:" {} \+ 2>&1 | /dev/stdout
-@reboot find /site -not -user web -execdir chown "web:" {} \+ | /dev/stdout
+@reboot sleep 5 && find /site -not -user web -execdir chown "web:" {} \+ | /dev/stdout
 
 EndOfMessage
 

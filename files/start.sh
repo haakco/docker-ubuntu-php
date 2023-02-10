@@ -159,7 +159,8 @@ chmod -R a+w /dev/stdout
 chmod -R a+w /dev/stderr
 chmod -R a+w /dev/stdin
 
-find /site -not -user web -execdir chown "web:" {} \+
+#Background to speed up start
+find /site -not -user web -execdir chown "web:" {} \+ &
 
 if [[ -e "${INITIALISE_FILE}" ]]; then
   mkdir -p /root/.composer

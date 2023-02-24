@@ -119,6 +119,7 @@ chown root: /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
+MAILTO=""
 # m h  dom mon dow   command
 0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1 | /dev/stdout
 

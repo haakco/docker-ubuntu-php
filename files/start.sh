@@ -120,17 +120,17 @@ chmod 600 /root/.ssh/authorized_keys
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 # m h  dom mon dow   command
-0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto 2>&1 | /dev/stdout
+0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1 | /dev/stdout
 
 #rename on start
-@reboot find /site/web/.env -not -user web -execdir chown "web:" {} \+ 2>&1 | /dev/stdout
-@reboot sleep 5 && find /site -not -user web -execdir chown "web:" {} \+ | /dev/stdout
+@reboot find /site/web/.env -not -user web -execdir chown "web:" {} \+  > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1 | /dev/stdout
+@reboot sleep 5 && find /site -not -user web -execdir chown "web:" {} \+  > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1 | /dev/stdout
 
 EndOfMessage
 
 if [[ "${ENABLE_CRONTAB}" = "TRUE" ]]; then
  cat >> ${TEMP_CRON_FILE} <<- EndOfMessage
-* * * * * su web -c '/usr/bin/php /site/web/artisan schedule:run' 2>&1 >> /dev/stdout
+* * * * * su web -c '/usr/bin/php /site/web/artisan schedule:run'  > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 EndOfMessage
 fi
 

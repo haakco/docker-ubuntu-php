@@ -337,6 +337,9 @@ RUN mkdir -p /site/logs/nginx && \
     mkdir -p /var/lib/nginx && \
     find /var/lib/nginx -not -user web -execdir chown "web:" {} \+
 
+## add pgcsv for csv to posgres import
+RUN pip install -U pgcsv
+
 ADD ./files/testLoop.sh /testLoop.sh
 RUN chmod u+x /testLoop.sh
 

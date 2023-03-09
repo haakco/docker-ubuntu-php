@@ -337,8 +337,16 @@ RUN mkdir -p /site/logs/nginx && \
     mkdir -p /var/lib/nginx && \
     find /var/lib/nginx -not -user web -execdir chown "web:" {} \+
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    PIP_DEFAULT_TIMEOUT=600 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 ## add pgcsv for csv to posgres import
-RUN pip3 install --default-timeout=100 pgcsv
+RUN pip3 install --upgrade pip && \
+    pip3 install --upgrade --default-timeout=100 pgcsv
 
 ADD ./files/testLoop.sh /testLoop.sh
 RUN chmod u+x /testLoop.sh

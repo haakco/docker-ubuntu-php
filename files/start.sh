@@ -101,20 +101,24 @@ else
   sed -E -i -e 's/ENABLE_SSH/0/' /supervisord.conf
 fi
 
-chmod 700 /root/.ssh
+mkdir -p /root/.ssh
+mkdir -p /site/.ssh
 
 if [[ ! -z "${SSH_AUTHORIZED_KEYS}" ]];then
+  mkdir -p /root/.ssh
   echo "${SSH_AUTHORIZED_KEYS}" > /root/.ssh/authorized_keys
   chmod 700 /root/.ssh
   chmod 600 /root/.ssh/authorized_keys
   chown -R root:root /root/.ssh
 
+  mkdir -p /site/.ssh
   chown -R web:web /site/.ssh
   chmod 700 /site/.ssh
   echo "${SSH_AUTHORIZED_KEYS}" > /site/.ssh/authorized_keys
   chmod 600 /site/.ssh/authorized_keys
 fi
 
+chmod 700 /root/.ssh
 chown root: /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 

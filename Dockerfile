@@ -123,7 +123,7 @@ RUN apt-get update && \
       php${PHP_VERSION}-http \
       php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
-      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql  \
+      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql php${PHP_VERSION}-mcrypt \
       php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql php${PHP_VERSION}-protobuf \
       php${PHP_VERSION}-raphf php${PHP_VERSION}-redis \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 php${PHP_VERSION}-swoole \
@@ -141,14 +141,14 @@ RUN apt-get update && \
     echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
      true
 
-RUN test "${PHP_VERSION}" != "8.2" &&  \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    \
-    apt-get -y install \
-      php${PHP_VERSION}-mcrypt \
-     && \
-    apt-get -y autoremove || true
+#RUN test "${PHP_VERSION}" != "8.2" &&  \
+#    apt-get update && \
+#    apt-get -qy dist-upgrade && \
+#    \
+#    apt-get -y install \
+#      php${PHP_VERSION}-mcrypt \
+#     && \
+#    apt-get -y autoremove || true
 
 ADD ./files/php/10-xdebug.ini "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini"
 

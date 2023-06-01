@@ -57,7 +57,7 @@ RUN add-apt-repository -y ppa:ondrej/php && \
     apt-get -y autoremove
 
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8 && \
+    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/postgresql.gpg  > /dev/null && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
@@ -85,6 +85,7 @@ RUN apt-get update && \
       openssl \
       pip procps psmisc \
       rsync rsyslog \
+      redis-tools \
       sudo supervisor \
       tar telnet tmux traceroute tree \
       unzip \

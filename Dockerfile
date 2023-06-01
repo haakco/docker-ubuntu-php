@@ -57,7 +57,7 @@ RUN add-apt-repository -y ppa:ondrej/php && \
     apt-get -y autoremove
 
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/postgresql.gpg  > /dev/null && \
+    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/postgresql.gpg  > /dev/null && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
@@ -421,7 +421,7 @@ RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
 
 # Install node for headless testing
 
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_current.x | -E bash - && \
     apt-get install -y nodejs && \
     apt-get -y autoremove
 

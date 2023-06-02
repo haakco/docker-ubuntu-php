@@ -45,7 +45,10 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     echo $TZ > /etc/timezone && \
     apt-get install -qy \
       apt-transport-https \
-      software-properties-common \
+      ca-certificates \
+      curl \
+      gnupg \
+      software-properties-common sudo \
       tzdata \
       && \
     apt-get -y autoremove
@@ -56,8 +59,8 @@ RUN add-apt-repository -y ppa:ondrej/php && \
     apt-get -qy dist-upgrade && \
     apt-get -y autoremove
 
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/postgresql.gpg  > /dev/null && \
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
@@ -70,11 +73,11 @@ RUN apt-get update && \
     apt-get install -qy \
       bash-completion build-essential \
       bzip2 \
-      ca-certificates cron curl \
+      cron \
       dos2unix dnsutils \
       expect \
       ftp fzf \
-      gawk git git-core gnupg \
+      gawk git git-core \
       inetutils-ping inetutils-tools \
       jq \
       logrotate \
@@ -86,7 +89,7 @@ RUN apt-get update && \
       pip procps psmisc \
       rsync rsyslog \
       redis-tools \
-      sudo supervisor \
+      supervisor \
       tar telnet tmux traceroute tree \
       unzip \
       wget whois \
@@ -421,7 +424,7 @@ RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
 
 # Install node for headless testing
 
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
     apt-get install -y nodejs && \
     apt-get -y autoremove
 

@@ -15,11 +15,11 @@ jobs:
   build_docker_image:
     uses: ./.github/workflows/template-docker-build.yml
     with:
-      DOCKER_FILE: Dockerfile
-      CREATE_IMAGE_NAME: haakco/ubuntu2204-php80
-      BASE_IMAGE_NAME: ubuntu
-      BASE_IMAGE_TAG: 22.04
-      PHP_VERSION: 8.0
+      DOCKER_FILE: "Dockerfile"
+      CREATE_IMAGE_NAME: "haakco/ubuntu2204-php80"
+      BASE_IMAGE_NAME: "ubuntu"
+      BASE_IMAGE_TAG: "22.04"
+      PHP_VERSION: "8.0"
     secrets:
       REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD_2204_80_X64 }}

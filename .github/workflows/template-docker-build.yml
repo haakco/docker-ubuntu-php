@@ -71,9 +71,9 @@ jobs:
         file: ${{ inputs.DOCKER_FILE }}
         platforms: linux/amd64,linux/arm64/v8
         build-args: |
-          BASE_IMAGE_NAME=${{ inputs.BASE_IMAGE_NAME }}
-          BASE_IMAGE_TAG=${{ inputs.BASE_IMAGE_TAG }}
-          PHP_VERSION=${{ inputs.PHP_VERSION }}
+          BASE_IMAGE_NAME="${{ inputs.BASE_IMAGE_NAME }}"
+          BASE_IMAGE_TAG="${{ inputs.BASE_IMAGE_TAG }}"
+          PHP_VERSION="${{ inputs.PHP_VERSION }}"
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         #          cache-from: type=gha

@@ -36,19 +36,16 @@ jobs:
       cancel-in-progress: true
     steps:
     - name: Check out the repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@v4
       with:
         images: ${{ inputs.CREATE_IMAGE_NAME }}
         tags: |
-          type=raw,value=latest
+          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
           type=ref,event=tag
           type=ref,event=branch
-    #            type=ref,event=pr
-    #            type=raw,value={{branch}}-{{sha}}
-    #            type=schedule,pattern={{date 'YYYYMMDD'}}
     - name: Login to Container Registry
       uses: docker/login-action@v2
       with:

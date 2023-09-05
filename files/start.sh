@@ -37,6 +37,13 @@ export PHP_OPCACHE_VALIDATE_TIMESTAMPS=${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-"1"}
 export PHP_OPCACHE_REVALIDATE_FREQ=${PHP_OPCACHE_REVALIDATE_FREQ:-"0"}
 export PHP_OPCACHE_PRELOAD_FILE=${PHP_OPCACHE_PRELOAD_FILE:-""}
 
+export FPM_LISTEN_BACKLOG=${FPM_LISTEN_BACKLOG:-1024}
+export FPM_MAX_CHILDREN=${FPM_MAX_CHILDREN:-32}
+export FPM_START_SERVERS=${FPM_START_SERVERS:-4}
+export FPM_MIN_SPARE_SERVERS=${FPM_MIN_SPARE_SERVERS:-4}
+export FPM_MAX_SPARE_SERVERS=${FPM_MAX_SPARE_SERVERS:-8}
+export FPM_MAX_REQUESTS=${FPM_MAX_REQUESTS:-1000}
+
 
 sed -i \
   -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
@@ -62,6 +69,15 @@ if [[ "${PHP_OPCACHE_PRELOAD_FILE}" != "" ]]; then
     -e "s#;opcache.preload_user=.*#opcache.preload_user=web#" \
     /etc/php/"${PHP_VERSION}"/fpm/php.ini
 fi
+
+sed -Ei \
+  -e "s/^listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
+  -e "s/^pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
+  -e "s/^pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
+  -e "s/^pm\.min_spare_servers = .*/pm.min_spare_servers = ${FPM_MIN_SPARE_SERVERS}/" \
+  -e "s/^pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
+  -e "s/^pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
+  /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
 cp /supervisord_base.conf /supervisord.conf
 

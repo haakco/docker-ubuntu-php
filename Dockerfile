@@ -7,6 +7,7 @@ FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_TAG=""
 ARG PHP_VERSION=''
+ARG TARGETARCH
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
@@ -17,6 +18,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 
 ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
     BASE_IMAGE_TAG="${BASE_IMAGE_TAG}" \
+    TARGETARCH="${TARGETARCH}" \
     PHP_VERSION="${PHP_VERSION}"
 
 ENV JOBS="8"
@@ -171,7 +173,13 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPCACHE_REVALIDATE_FREQ="1" \
     PHP_OPCACHE_PRELOAD_FILE="" \
-    COMPOSER_PROCESS_TIMEOUT=2000
+    COMPOSER_PROCESS_TIMEOUT=2000 \
+    FPM_LISTEN_BACKLOG=1024 \
+    FPM_MAX_CHILDREN=32 \
+    FPM_START_SERVERS=4 \
+    FPM_MIN_SPARE_SERVERS=4 \
+    FPM_MAX_SPARE_SERVERS=8 \
+    FPM_MAX_REQUESTS=1000
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/bin --filename=composer && \
@@ -254,12 +262,12 @@ RUN sed -Ei \
         -e "s/^group = .*/group = web/" \
         -e 's/listen\.owner.*/listen.owner = web/' \
         -e 's/listen\.group.*/listen.group = web/' \
-        -e 's/.*listen\.backlog.*/listen.backlog = 65536/' \
-        -e "s/pm\.max_children = .*/pm.max_children = 32/" \
-        -e "s/pm\.start_servers = .*/pm.start_servers = 4/" \
-        -e "s/pm\.min_spare_servers = .*/pm.min_spare_servers = 4/" \
-        -e "s/pm\.max_spare_servers = .*/pm.max_spare_servers = 16/" \
-        -e "s/.*pm\.max_requests = .*/pm.max_requests = 0/" \
+        -e "s/.*listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
+        -e "s/^pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
+        -e "s/^pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
+        -e "s/^pm\.min_spare_servers = .*/pm.min_spare_servers = ${FPM_MIN_SPARE_SERVERS}/" \
+        -e "s/^pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
+        -e "s/.*pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
         -e "s/.*pm\.status_path = .*/pm.status_path = \/fpm-status/" \
         -e "s/.*ping\.path = .*/ping.path = \/fpm-ping/" \
         -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
@@ -282,13 +290,18 @@ RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/
     mkdir -p /site/logs/php && \
     find /site -not -user web -execdir chown "web:" {} \+
 
+COPY --link .files/zshrc/starship.toml ~/.config/starship.toml
 
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
     git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
+    curl -sS https://starship.rs/install.sh | sh && \
+    echo 'eval "$(starship init bash)"' >> /root/.bashrc && \
+    echo 'eval "$(starship init bash)"' >> /site/.bashrc && \
     find /site/.oh-my-zsh -not -user web -execdir chown "web:" {} \+ && \
+    find /site/.bashrc -not -user web -execdir chown "web:" {} \+ && \
     find /site/.zshrc -not -user web -execdir chown "web:" {} \+
 
 ## Files to add github key for composer

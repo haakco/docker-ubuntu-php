@@ -155,7 +155,7 @@ if [[ "${ENABLE_CRONTAB}" = "TRUE" ]]; then
 EndOfMessage
 fi
 
-cat ${TEMP_CRON_FILE} | crontab -
+crontab - < ${TEMP_CRON_FILE}
 
 rm ${TEMP_CRON_FILE}
 

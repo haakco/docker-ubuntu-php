@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.3
+# syntax=docker/dockerfile:1
 ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_TAG=""
 
@@ -8,18 +8,22 @@ ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_TAG=""
 ARG PHP_VERSION=''
 ARG TARGETARCH
+ARG TZ="UTC"
+ARG WEB_USER="web"
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8" \
     LC_ALL="C.UTF-8" \
     TERM="xterm" \
-    TZ="UTC"
+    TZ="${TZ}" \
+    TIMEZONE="${TZ}"
 
 ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
     BASE_IMAGE_TAG="${BASE_IMAGE_TAG}" \
     TARGETARCH="${TARGETARCH}" \
-    PHP_VERSION="${PHP_VERSION}"
+    PHP_VERSION="${PHP_VERSION}" \
+    WEB_USER="${WEB_USER}"
 
 ENV JOBS="8"
 
@@ -70,45 +74,81 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg ma
       && \
     apt-get -y autoremove
 
+RUN curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
+    apt-get install -y nodejs && \
+    apt-get -y autoremove
+
 RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get install -qy \
       bash-completion build-essential \
       bzip2 \
-      cron \
-      dos2unix dnsutils \
+      curl cron \
+      dos2unix dnsutils dumb-init \
       expect \
       ftp fzf \
-      gawk git git-core \
+      gawk git git-extras git-core git-lfs gnupg2 \
       inetutils-ping inetutils-tools \
       jq \
-      logrotate \
       libssh2-1 libsodium-dev libuuid1 \
+      logrotate \
       mysql-client \
       net-tools \
-      postgresql-client \
-      openssl \
+      nginx-extras \
+      openssl openssh-server \
       pip procps psmisc \
-      rsync rsyslog \
+      postgresql-client \
       redis-tools \
+      rsync \
+      rsyslog rsyslog-kubernetes  \
+      rsyslog-openssl rsyslog-relp rsyslog-snmp rsyslog-gnutls \
       supervisor \
-      tar telnet tmux traceroute tree \
+      tar telnet thefuck tmux tmuxinator traceroute tree \
       unzip \
-      wget whois \
-      vim \
       uuid-dev \
+      vim \
+      wget whois \
       xz-utils \
-      zlib1g-dev && \
+      zlib1g-dev \
+      zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
+    \
+    ffmpeg \
+    libavcodec-extra libavformat-extra libavfilter-extra \
+    \
+    gifsicle \
+    jpegoptim \
+    libavif-bin \
+    optipng \
+    pngquant \
+    gifsicle \
+    webp \
+    && \
     update-ca-certificates --fresh && \
+    npm install -g svgo && \
     apt-get -y autoremove
 
+# Install node for headless testing
+RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
+
+# Install chrome for headless testing
+RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
+          chromium-browser \
+          fonts-liberation \
+          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
+          libappindicator1 \
+          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
+        && \
+    apt-get -y autoremove || \
+    true
 
 RUN apt-get update && \
     apt-get -qy dist-upgrade && \
     apt-get -y install \
       php7.4-propro && \
     apt-get -y autoremove
-
 
 RUN apt-get update && \
     apt-get -qy dist-upgrade && \
@@ -145,7 +185,7 @@ RUN apt-get update && \
     apt-get -y autoremove && \
     echo "extension=redis.so" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
     echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
-     true
+    true
 
 #RUN test "${PHP_VERSION}" != "8.2" &&  \
 #    apt-get update && \
@@ -156,7 +196,7 @@ RUN apt-get update && \
 #     && \
 #    apt-get -y autoremove || true
 
-ADD ./files/php/10-xdebug.ini "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini"
+COPY --link ./files/php/10-xdebug.ini "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini"
 
 ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="128M" \
@@ -258,10 +298,10 @@ RUN sed -Ei \
     echo "request_terminate_timeout = 600" >> /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
 
 RUN sed -Ei \
-        -e "s/^user = .*/user = web/" \
-        -e "s/^group = .*/group = web/" \
-        -e 's/listen\.owner.*/listen.owner = web/' \
-        -e 's/listen\.group.*/listen.group = web/' \
+        -e "s/^user = .*/user = ${WEB_USER}/" \
+        -e "s/^group = .*/group = ${WEB_USER}/" \
+        -e 's/listen\.owner.*/listen.owner = ${WEB_USER}/' \
+        -e 's/listen\.group.*/listen.group = ${WEB_USER}/' \
         -e "s/.*listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
         -e "s/^pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
         -e "s/^pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
@@ -273,49 +313,34 @@ RUN sed -Ei \
         -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
-#    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-RUN add-apt-repository -y ppa:git-core/ppa && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy git-lfs && \
-    git lfs install && \
-    apt-get -y autoremove
-
-ADD ./files/zshrc/zshrc.in /root/.zshrc
-
-#    echo "web:`date +%s | sha256sum | base64 | head -c 32`" | chpasswd && \
-RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash web && \
-    usermod -a -G tty web && \
+RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
+    usermod -a -G tty cc && \
     mkdir -p /site/web && \
     mkdir -p /site/logs/php && \
-    find /site -not -user web -execdir chown "web:" {} \+
+    find /site -not -user web -execdir chown "${WEB_USER}:" {} \+
 
-COPY --link .files/zshrc/starship.toml ~/.config/starship.toml
+COPY --link ./files/shell/starship/ "/root/.config/"
+COPY --link ./files/shell/zshrc/ "/root/"
+
+COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/starship/ "/site/.config/"
+COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/zshrc/ "/site/"
 
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
     git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
+    git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
     curl -sS https://starship.rs/install.sh | sh && \
     echo 'eval "$(starship init bash)"' >> /root/.bashrc && \
     echo 'eval "$(starship init bash)"' >> /site/.bashrc && \
-    find /site/.oh-my-zsh -not -user web -execdir chown "web:" {} \+ && \
-    find /site/.bashrc -not -user web -execdir chown "web:" {} \+ && \
-    find /site/.zshrc -not -user web -execdir chown "web:" {} \+
+    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
+    find /site/.oh-my-zsh -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
+    find /site/.bashrc -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
+    find /site/.zshrc -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
-## Files to add github key for composer
-#ADD ./files/composer/auth.json /root/.composer/auth.json
-#ADD ./files/composer/auth.json /site/.composer/auth.json
-
-ADD ./files/start.sh /start.sh
-ADD ./files/supervisord_base.conf /supervisord_base.conf
-
-ADD ./files/rsyslog.conf /etc/rsyslog.conf
-ADD ./files/rsyslog.d/50-default.conf /etc/rsyslog.d/50-default.conf
-ADD ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
-ADD ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
-ADD ./files/run_with_env.sh /bin/run_with_env.sh
+COPY --link ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
+COPY --link ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
 
 RUN echo 'PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor/bin:/site/.composer/vendor/bin:${PATH}"' >> /site/.bashrc && \
     echo 'shopt -s histappend' >> /site/.bashrc && \
@@ -325,11 +350,9 @@ RUN echo 'PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor
     touch /root/.bash_profile /site/.bash_profile && \
     chown root: /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
     chmod u+rw /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
-    chmod go+r /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt
-
-RUN chmod u+x /start.sh && \
-    chmod a+x /bin/run_with_env.sh && \
+    chmod go+r /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
     mkdir -p /run/php
+
 
 #fix problem with cron
 #RUN sed -E -i.back -e 's/(.+pam_loginuid.so)/#\1/' /etc/pam.d/cron
@@ -337,22 +360,15 @@ RUN chmod u+x /start.sh && \
 WORKDIR /site/web
 
 RUN mkdir -p /site/tmp && \
-    find /site -not -user web -execdir chown "web:" {} \+ && \
-    find /site/.bash_profile -not -user web -execdir chown "web:" {} \+ && \
-    find /site/tmp -not -user web -execdir chown "web:" {} \+
+    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
+    find /site/.bash_profile -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
+    find /site/tmp -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-          nginx-extras \
-        && \
-    apt-get -y autoremove
-
-ADD ./files/nginx_config /site/nginx/config
+COPY --link ./files/nginx_config /site/nginx/config
 
 RUN mkdir -p /site/logs/nginx && \
     mkdir -p /var/lib/nginx && \
-    find /var/lib/nginx -not -user web -execdir chown "web:" {} \+
+    find /var/lib/nginx -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONFAULTHANDLER=1 \
@@ -365,10 +381,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN pip3 install --upgrade pip && \
     pip3 install --upgrade --default-timeout=100 pgcsv
 
-ADD ./files/testLoop.sh /testLoop.sh
-RUN chmod u+x /testLoop.sh
-
-USER web
+USER "${WEB_USER}"
 
 ##    Does not support php 8.0 yet
 #    composer global require sllh/composer-versions-check && \
@@ -381,119 +394,20 @@ RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}"
 
 USER root
 
-ADD ./files/logrotate.d/ /etc/logrotate.d/
+COPY --link ./files/logrotate.d/ /etc/logrotate.d/
 
-RUN find /site -not -user web -execdir chown "web:" {} \+
+RUN find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
 RUN chmod -R a+w /dev/stdout && \
     chmod -R a+w /dev/stderr && \
     chmod -R a+w /dev/stdin && \
     usermod -a -G tty syslog && \
-    usermod -a -G tty web
-
-# Install chrome for headless testing
-
-#RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
-#    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-#    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-#    apt-get update && \
-#    apt-get -qy dist-upgrade && \
-#    apt-get -y install \
-#          google-chrome-stable \
-#          fonts-liberation \
-#          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
-#          libappindicator1 \
-#          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
-#        && \
-#    apt-get -y autoremove || \
-#    true
-
-#RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
-#    add-apt-repository ppa:saiarcot895/chromium-beta -y && \
-#    apt-get update && \
-#    apt-get -qy dist-upgrade && \
-#    apt-get -y install \
-#          chromium-browser \
-#          fonts-liberation \
-#          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
-#          libappindicator1 \
-#          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
-#        && \
-#    apt-get -y autoremove || \
-#    true
-
-RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-          chromium-browser \
-          fonts-liberation \
-          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
-          libappindicator1 \
-          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
-        && \
-    apt-get -y autoremove || \
-    true
-
-# Install node for headless testing
-
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
-    apt-get install -y nodejs && \
-    apt-get -y autoremove
-
-RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
-
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" = "amd64" && \
-    add-apt-repository -y ppa:savoury1/graphics && \
-    add-apt-repository -y ppa:savoury1/multimedia && \
-    add-apt-repository -y ppa:savoury1/ffmpeg4 && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-          ffmpeg \
-        && \
-    apt-get -y autoremove || \
-    true
-
-RUN test "$(dpkg-architecture -q DEB_BUILD_ARCH)" != "amd64" && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-          ffmpeg \
-        && \
-    apt-get -y autoremove || \
-    true
-
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
-      gifsicle \
-      jpegoptim \
-      optipng \
-      pngquant \
-      gifsicle \
-      webp \
-      && \
-    apt-get -y autoremove
+    usermod -a -G tty "${WEB_USER}"
 
 # Add openssh
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
-      openssh-server \
-      && \
-    ssh-keygen -A && \
+RUN ssh-keygen -A && \
     mkdir -p /run/sshd && \
-    mkdir -p /run/sshd && \
-    apt-get -y autoremove
-
-# Add dumb-init
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
-      dumb-init \
-      && \
-    apt-get -y autoremove
+    mkdir -p /run/sshd
 
 RUN mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
@@ -507,9 +421,9 @@ RUN mkdir -p /site/.ssh && \
     chmod 700 /site/.ssh && \
     touch /site/.ssh/authorized_keys && \
     chmod 600 /site/.ssh/authorized_keys && \
-    chown -R web:web /site/.ssh
+    chown -R "${WEB_USER}:" /site/.ssh
 
-COPY --chown=web: ./files/ssh/config /site/.ssh/config
+COPY --chown="${WEB_USER}:" ./files/ssh/config /site/.ssh/config
 
 ENV NGINX_SITES='locahost' \
     ENABLE_DEBUG="FALSE" \
@@ -521,10 +435,15 @@ ENV NGINX_SITES='locahost' \
     SIMPLE_WORKER_NUM="5" \
     ENABLE_SSH="FALSE"
 
-ADD ./files/healthCheck.sh /healthCheck.sh
+COPY --link ./files/supervisord_base.conf /supervisord_base.conf
 
-RUN chown web: /healthCheck.sh && \
-    chmod a+x /healthCheck.sh
+COPY --link ./files/rsyslog.conf /etc/rsyslog.conf
+COPY --link ./files/rsyslog.d/50-default.conf /etc/rsyslog.d/50-default.conf
+
+COPY --link --chmod=0744 ./files/run_with_env.sh /bin/run_with_env.sh
+COPY --link --chmod=0744 ./files/start.sh /start.sh
+COPY --link --chmod=0744 ./files/testLoop.sh /testLoop.sh
+COPY --link --chmod=0744 ./files/healthCheck.sh /healthCheck.sh
 
 HEALTHCHECK \
   --interval=30s \

@@ -6,11 +6,12 @@ export EXTRA_FLAG="${EXTRA_FLAG}"
 
 export DOCKER_BUILDKIT=1
 
+CACHE_FROM=""
 #export CACHE_DIR="/tmp/mn-server-test-cache"
 #export CACHE_FROM="${CACHE_FROM} --cache-from=type=local,src=${CACHE_DIR}"
-export CACHE_FROM="${CACHE_FROM} --cache-from=type=registry,ref=${BUILD_IMAGE_NAME}:buildcache"
-#export CACHE_FROM="${CACHE_FROM} --cache-to=type=local,dest=${CACHE_DIR}"
-export CACHE_FROM="${CACHE_FROM} --cache-to=type=registry,ref=${BUILD_IMAGE_NAME}:buildcache,mode=max"
+#export CACHE_FROM="${CACHE_FROM} --cache-from=type=registry,ref=${BUILD_IMAGE_NAME}:buildcache"
+##export CACHE_FROM="${CACHE_FROM} --cache-to=type=local,dest=${CACHE_DIR}"
+#export CACHE_FROM="${CACHE_FROM} --cache-to=type=registry,ref=${BUILD_IMAGE_NAME}:buildcache,mode=max"
 
 #BUILD_TYPE_FLAG=" --load --pull "
 BUILD_TYPE_FLAG=" --push "

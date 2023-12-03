@@ -314,7 +314,7 @@ RUN sed -Ei \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
-    usermod -a -G tty cc && \
+    usermod -a -G tty "${WEB_USER}" && \
     mkdir -p /site/web && \
     mkdir -p /site/logs/php && \
     find /site -not -user web -execdir chown "${WEB_USER}:" {} \+
@@ -325,13 +325,14 @@ COPY --link ./files/shell/zshrc/ "/root/"
 COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/starship/ "/site/.config/"
 COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/zshrc/ "/site/"
 
+RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
+
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
     git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
-    curl -sS https://starship.rs/install.sh | sh && \
     echo 'eval "$(starship init bash)"' >> /root/.bashrc && \
     echo 'eval "$(starship init bash)"' >> /site/.bashrc && \
     find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
@@ -352,10 +353,6 @@ RUN echo 'PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor
     chmod u+rw /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
     chmod go+r /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
     mkdir -p /run/php
-
-
-#fix problem with cron
-#RUN sed -E -i.back -e 's/(.+pam_loginuid.so)/#\1/' /etc/pam.d/cron
 
 WORKDIR /site/web
 

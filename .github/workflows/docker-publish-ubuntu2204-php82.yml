@@ -20,6 +20,7 @@ jobs:
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.2'
+      DOCKER_REGISTRY: ghcr.io/haakco
     secrets:
-      REGISTRY_USERNAME: ${{ github.actor }}
-      REGISTRY_USERNAME: ${{ secrets.GITHUB_TOKEN }}
+      DOCKER_REGISTRY_USERNAME: ${{ github.actor }}
+      DOCKER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

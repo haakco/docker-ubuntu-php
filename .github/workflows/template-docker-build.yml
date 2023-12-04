@@ -13,6 +13,9 @@ on:
       CREATE_IMAGE_NAME:
         required: true
         type: string
+      CREATE_IMAGE_CACHE_NAME:
+        required: true
+        type: string
       BASE_IMAGE_NAME:
         required: true
         type: string

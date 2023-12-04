@@ -21,5 +21,5 @@ jobs:
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.3'
     secrets:
-      DOCKER_REGISTRY_USERNAME: ${{ github.actor }}
-      DOCKER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_USERNAME: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

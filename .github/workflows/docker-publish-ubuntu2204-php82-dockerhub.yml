@@ -16,10 +16,10 @@ jobs:
     uses: ./.github/workflows/template-docker-build.yml
     with:
       DOCKER_FILE: 'Dockerfile'
-      CREATE_IMAGE_NAME: 'ghcr.io/haakco/ubuntu2204-php82'
+      CREATE_IMAGE_NAME: 'haakco/ubuntu2204-php82'
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.2'
     secrets:
-      REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD_2204_82_X64 }}
+      DOCKER_REGISTRY_USERNAME: ${{ github.actor }}
+      DOCKER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

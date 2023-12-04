@@ -17,6 +17,7 @@ jobs:
     with:
       DOCKER_FILE: 'Dockerfile'
       CREATE_IMAGE_NAME: 'ghcr.io/haakco/ubuntu2204-php82'
+      CREATE_IMAGE_CACHE_NAME: 'ghcr.io/haakco/ubuntu2204-php82-buildcache'
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.2'

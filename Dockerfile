@@ -39,8 +39,7 @@ RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
     echo "PHP_VERSION=${PHP_VERSION}" && \
     echo ""
 
-RUN echo 'Acquire::ForceIPv4 "true";' | tee /etc/apt/apt.conf.d/99force-ipv4 && \
-    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
     apt-get install -qy \
       software-properties-common && \

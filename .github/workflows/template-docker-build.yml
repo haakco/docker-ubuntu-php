@@ -86,5 +86,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           #          cache-from: type=gha
           #          cache-to: type=gha,mode=max
-          cache-from: type=registry,ref=${{ inputs.CREATE_IMAGE_NAME }}-buildcache:buildcache-${{ env.CACHE_REF_NAME }}
-          cache-to: type=registry,ref=${{ inputs.CREATE_IMAGE_NAME }}-buildcache:buildcache-${{ env.CACHE_REF_NAME }},mode=max
+          cache-from: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }}
+          cache-to: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }},mode=max

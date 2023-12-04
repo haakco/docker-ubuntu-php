@@ -1,4 +1,4 @@
-name: Publish haakco/ubuntu2204-php83 Docker image
+name: Publish ghcr.io/haakco/ubuntu2204-php83 Docker image
 
 on:
   workflow_dispatch:

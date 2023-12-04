@@ -7,6 +7,7 @@ FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
 ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_TAG=""
 ARG PHP_VERSION=''
+ARG NODE_MAJOR='20'
 ARG TARGETARCH
 ARG TZ="UTC"
 ARG WEB_USER="web"
@@ -23,6 +24,7 @@ ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
     BASE_IMAGE_TAG="${BASE_IMAGE_TAG}" \
     TARGETARCH="${TARGETARCH}" \
     PHP_VERSION="${PHP_VERSION}" \
+    NODE_MAJOR="${NODE_MAJOR}" \
     WEB_USER="${WEB_USER}"
 
 ENV JOBS="8"
@@ -33,6 +35,7 @@ RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
 
 RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
     echo "BASE_IMAGE_TAG=${BASE_IMAGE_TAG}" && \
+    echo "NODE_MAJOR=${NODE_MAJOR}" && \
     echo "PHP_VERSION=${PHP_VERSION}" && \
     echo ""
 
@@ -75,7 +78,12 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg ma
       && \
     apt-get -y autoremove
 
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - && \
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \
+      tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
     apt-get install -y nodejs && \
     apt-get -y autoremove
 
@@ -147,12 +155,6 @@ RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
 
 RUN apt-get update && \
     apt-get -qy dist-upgrade && \
-    apt-get -y install \
-      php7.4-propro && \
-    apt-get -y autoremove
-
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
     \
     apt-get -y install \
       libbrotli-dev libbrotli1 \
@@ -163,16 +165,16 @@ RUN apt-get update && \
       libmcrypt4 libmcrypt-dev \
       libzstd1 libzstd-dev \
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm php${PHP_VERSION}-swoole \
-      php${PHP_VERSION}-bcmath \
+      php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
-      php${PHP_VERSION}-dev \
-      php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
+      php${PHP_VERSION}-dev php${PHP_VERSION}-decimal \
+      php${PHP_VERSION}-gd php${PHP_VERSION}-gmp php${PHP_VERSION}-grpc \
       php${PHP_VERSION}-http \
-      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
+      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
-      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql php${PHP_VERSION}-mcrypt \
+      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
       php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql php${PHP_VERSION}-protobuf \
-      php${PHP_VERSION}-raphf php${PHP_VERSION}-redis \
+      php${PHP_VERSION}-raphf php${PHP_VERSION}-rdkafka php${PHP_VERSION}-readline php${PHP_VERSION}-redis \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 php${PHP_VERSION}-swoole \
       php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml \
       php${PHP_VERSION}-uuid \
@@ -184,8 +186,12 @@ RUN apt-get update && \
       pear-channels \
       && \
     apt-get -y autoremove && \
-    echo "extension=redis.so" > "/etc/php/${PHP_VERSION}/mods-available/20-redis.ini" && \
-    echo "extension=mcrypt.so" > "/etc/php/${PHP_VERSION}/mods-available/20-mcrypt.ini" || \
+    echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
+    pecl install brotli && \
+    echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
+    pecl install excimer && \
+    echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
+    phpenmod -v ${PHP_VERSION} excimer || \
     true
 
 #RUN test "${PHP_VERSION}" != "8.2" &&  \

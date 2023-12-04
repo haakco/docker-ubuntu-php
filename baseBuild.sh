@@ -13,7 +13,7 @@ CACHE_FROM=""
 ##export CACHE_FROM="${CACHE_FROM} --cache-to=type=local,dest=${CACHE_DIR}"
 #export CACHE_FROM="${CACHE_FROM} --cache-to=type=registry,ref=${BUILD_IMAGE_NAME}:buildcache,mode=max"
 
-#BUILD_TYPE_FLAG=" --load --pull "
+#BUILD_TYPE_FLAG=" --load "
 BUILD_TYPE_FLAG=" --push "
 export BUILD_TYPE_FLAG
 
@@ -23,16 +23,25 @@ PLATFORM=" --platform  linux/arm64/v8,linux/amd64 "
 #PLATFORM=" --platform linux/amd64 "
 export PLATFORM
 
-CMD='docker buildx build --rm '"${PLATFORM}"' '"${BUILD_TYPE_FLAG}"' '"${CACHE_FROM}"' --file '"${DOCKER_FILE}"' -t '"${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG}"' '"${EXTRA_FLAG}"' .'
+CMD='docker buildx build --pull --rm '"${PLATFORM}"' '"${BUILD_TYPE_FLAG}"' '"${CACHE_FROM}"' --file '"${DOCKER_FILE}"' -t '"${BUILD_IMAGE_NAME}:${BUILD_IMAGE_TAG}"' '"${EXTRA_FLAG}"' .'
 
 echo "Build command: ${CMD}"
 echo ""
 ${CMD}
 
+
 DOCKER_PULL_CMD='docker pull '"${BUILD_IMAGE_NAME}"':'"${BUILD_IMAGE_TAG}"''
 echo "Pull command: ${DOCKER_PULL_CMD}"
 ${DOCKER_PULL_CMD}
 
-#DOCKER_PUSH_CMD='docker push '"${BUILD_IMAGE_NAME}"':'"${BUILD_IMAGE_TAG}"''
-#echo "Push command: ${DOCKER_PUSH_CMD}"
-#${DOCKER_PUSH_CMD}
+
+if [[ "${BUILD_IMAGE_NAME_OLD}" != "" ]]; then
+  CMD='docker buildx build --pull --rm '"${PLATFORM}"' '"${BUILD_TYPE_FLAG}"' '"${CACHE_FROM}"' --file '"${DOCKER_FILE}"' -t '"${BUILD_IMAGE_NAME_OLD}:${BUILD_IMAGE_TAG}"' '"${EXTRA_FLAG}"' .'
+  echo "Build command: ${CMD}"
+  echo ""
+  ${CMD}
+
+  DOCKER_PULL_CMD='docker pull '"${BUILD_IMAGE_NAME_OLD}"':'"${BUILD_IMAGE_TAG}"''
+  echo "Pull command: ${DOCKER_PULL_CMD}"
+  ${DOCKER_PULL_CMD}
+fi

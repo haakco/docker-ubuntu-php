@@ -96,6 +96,7 @@ RUN apt-get update && \
       expect \
       ftp fzf \
       gawk git git-extras git-core git-lfs gnupg2 \
+      ghostscript ghostscript-x gsfonts-other \
       inetutils-ping inetutils-tools \
       jq \
       libssh2-1 libsodium-dev libuuid1 \

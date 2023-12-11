@@ -1,13 +1,14 @@
+---
 name: Publish ghcr.io/haakco/ubuntu2204-php82 Docker image
 
 on:
   workflow_dispatch:
   push:
     tags:
-    - 'v*'
+      - 'v*'
     branches:
-    - main
-    - master
+      - main
+      - master
   schedule:
     - cron: '30 22 * * 6'
 
@@ -21,7 +22,8 @@ jobs:
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.2'
-      DOCKER_REGISTRY: ghcr.io/haakco
     secrets:
-      DOCKER_REGISTRY_USERNAME: ${{ github.actor }}
-      DOCKER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      DOCKER_GITHUB_REGISTRY_USERNAME: ${{ github.actor }}
+      DOCKER_GITHUB_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      DOCKER_REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

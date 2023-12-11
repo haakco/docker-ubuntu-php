@@ -3,7 +3,11 @@ name: Reusable docker build
 on:
   workflow_call:
     inputs:
-      DOCKER_REGISTRY:
+      DOCKER_GITHUB_REGISTRY:
+        required: false
+        type: string
+        default: ghcr.io/haakco
+      DOCKER_HUB_REGISTRY:
         required: false
         type: string
         default: index.docker.io
@@ -26,6 +30,10 @@ on:
         required: true
         type: string
     secrets:
+      DOCKER_GITHUB_REGISTRY_USERNAME:
+        required: true
+      DOCKER_GITHUB_REGISTRY_PASSWORD:
+        required: true
       DOCKER_REGISTRY_USERNAME:
         required: true
       DOCKER_REGISTRY_PASSWORD:
@@ -36,7 +44,7 @@ jobs:
     name: Build and push base image
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{inputs.DOCKER_REGISTRY}}-${{ inputs.CREATE_IMAGE_NAME }}-${{ github.ref }}
+      group: ${{ inputs.CREATE_IMAGE_NAME }}-${{ github.ref }}
       cancel-in-progress: true
     steps:
       - name: Fix cache ref_name
@@ -60,12 +68,17 @@ jobs:
             type=semver,pattern={{major}}
             type=edge,enable=true,branch=$repo.default_branch # Tag edge to default
             type=raw,value=latest,enable={{is_default_branch}} # Only set latest on default branch
-      - name: Login to Container Registry
+      - name: Login to HUB Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ inputs.DOCKER_REGISTRY }}
           username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.DOCKER_GITHUB_REGISTRY }}
+          username: ${{ secrets.DOCKER_GITHUB_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_GITHUB_REGISTRY_PASSWORD }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx

@@ -21,7 +21,7 @@ jobs:
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.2'
-      DOCKER_REGISTRY: undefined
+      DOCKER_REGISTRY: null
     secrets:
       DOCKER_REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

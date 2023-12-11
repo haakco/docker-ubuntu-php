@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
   push:
     tags:
-    - 'v*'
+      - 'v*'
     branches:
-    - main
-    - master
+      - main
+      - master
   schedule:
     - cron: '30 22 * * 6'
 

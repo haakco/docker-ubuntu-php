@@ -1,3 +1,4 @@
+---
 name: Publish ghcr.io/haakco/ubuntu2204-php83 Docker image
 
 on:

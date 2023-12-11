@@ -9,6 +9,7 @@ export PHP_VERSION=${PHP_VERSION:-"7.4"}
 export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_WEB=${ENABLE_WEB:-"TRUE"}
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
+export ENABLE_PULSE=${ENABLE_PULSE:-"FALSE"}
 export ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-"FALSE"}
 export LARAVEL_WEBSOCKETS_PORT=${LARAVEL_WEBSOCKETS_PORT:-"2096"}
 export ENABLE_SIMPLE_QUEUE=${ENABLE_SIMPLE_QUEUE:-"FALSE"}
@@ -103,10 +104,16 @@ else
   sed -E -i -e 's/SIMPLE_WORKER_NUM/0/' /supervisord.conf
 fi
 
-if [[ "${ENABLE_WEBSOCKET}" = "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=WEBSOCKET_NUM/numprocs=1/' /supervisord.conf
+if [[ "${ENABLE_PULSE}" = "TRUE" ]]; then
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE/numprocs=1/' /supervisord.conf
 else
-  sed -E -i -e 's/^numprocs=WEBSOCKET_NUM/numprocs=0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE/numprocs=0/' /supervisord.conf
+fi
+
+if [[ "${ENABLE_WEBSOCKET}" = "TRUE" ]]; then
+  sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET/numprocs=1/' /supervisord.conf
+else
+  sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET/numprocs=0/' /supervisord.conf
 fi
 
 sed -E -i -e "s#LARAVEL_WEBSOCKETS_PORT#${LARAVEL_WEBSOCKETS_PORT}#" /supervisord.conf

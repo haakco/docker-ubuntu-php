@@ -1,5 +1,5 @@
-name: Publish haakco/ubuntu2204-php82 Docker image
-
+---
+name: Publish haakco/ubuntu2204-php82 Docker hub image
 on:
   workflow_dispatch:
   push:

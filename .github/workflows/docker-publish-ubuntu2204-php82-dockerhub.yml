@@ -1,5 +1,5 @@
-name: Publish haakco/ubuntu2204-php82 Docker image
-
+---
+name: Publish haakco/ubuntu2204-php82 Docker hub image
 on:
   workflow_dispatch:
   push:
@@ -17,11 +17,12 @@ jobs:
     with:
       DOCKER_FILE: 'Dockerfile'
       CREATE_IMAGE_NAME: 'haakco/ubuntu2204-php82'
-      CREATE_IMAGE_CACHE_NAME: 'haakco/ubuntu2204-php82'
+      CREATE_IMAGE_CACHE_NAME: 'ghcr.io/haakco/ubuntu2204-php82-buildcache'
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.2'
-      DOCKER_REGISTRY: undefined
     secrets:
       DOCKER_REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_GITHUB_REGISTRY_USERNAME: ${{ github.actor }}
+      DOCKER_GITHUB_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

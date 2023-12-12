@@ -83,45 +83,45 @@ sed -Ei \
 cp /supervisord_base.conf /supervisord.conf
 
 if [[ "${ENABLE_WEB}" = "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=ENABLE_WEB/numprocs=1/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_WEB$/numprocs=1/' /supervisord.conf
 else
-  sed -E -i -e 's/^numprocs=ENABLE_WEB/numprocs=0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_WEB$/numprocs=0/' /supervisord.conf
 fi
 
 if [[ "${ENABLE_HORIZON}" = "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=ENABLE_HORIZON/numprocs=1/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_HORIZON$/numprocs=1/' /supervisord.conf
   SIMPLE_WORKER_NUM='0'
   ENABLE_SIMPLE_QUEUE='FALSE'
 else
-  sed -E -i -e 's/^numprocs=ENABLE_HORIZON/numprocs=0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_HORIZON$/numprocs=0/' /supervisord.conf
 fi
 
-sed -E -i -e 's/^numprocs=WORKER_NUM/numprocs='"${WORKERS}"'/' /supervisord.conf
+sed -E -i -e 's/^numprocs=WORKER_NUM$/numprocs='"${WORKERS}"'/' /supervisord.conf
 
 if [[ "${ENABLE_HORIZON}" != "TRUE" && "${ENABLE_SIMPLE_QUEUE}" = "TRUE" ]]; then
-  sed -E -i -e 's/SIMPLE_WORKER_NUM/'"${SIMPLE_WORKER_NUM}"'/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=SIMPLE_WORKER_NUM$/numprocs='"${SIMPLE_WORKER_NUM}"'/' /supervisord.conf
 else
-  sed -E -i -e 's/SIMPLE_WORKER_NUM/0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=SIMPLE_WORKER_NUM$/numprocs=0/' /supervisord.conf
 fi
 
 if [[ "${ENABLE_PULSE}" = "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=ENABLE_PULSE/numprocs=1/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE$/numprocs=1/' /supervisord.conf
 else
-  sed -E -i -e 's/^numprocs=ENABLE_PULSE/numprocs=0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE$/numprocs=0/' /supervisord.conf
 fi
 
 if [[ "${ENABLE_WEBSOCKET}" = "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET/numprocs=1/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET$/numprocs=1/' /supervisord.conf
 else
-  sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET/numprocs=0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET$/numprocs=0/' /supervisord.conf
 fi
 
 sed -E -i -e "s#LARAVEL_WEBSOCKETS_PORT#${LARAVEL_WEBSOCKETS_PORT}#" /supervisord.conf
 
 if [[ "${ENABLE_SSH}" = "TRUE" ]]; then
-  sed -E -i -e 's/ENABLE_SSH/1/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_SSH$/numprocs=1/' /supervisord.conf
 else
-  sed -E -i -e 's/ENABLE_SSH/0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_SSH$/numprocs=0/' /supervisord.conf
 fi
 
 mkdir -p /root/.ssh

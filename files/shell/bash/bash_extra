@@ -1,0 +1,16 @@
+mkdir -p "$HOME/history"
+export HISTFILE="$HOME/history/zsh_history"
+export HISTSIZE=1000000
+export HISTFILESIZE=2000000
+export SAVEHIST=$HISTSIZE
+HISTTIMEFORMAT='%F %T '
+export HISTTIMEFORMAT
+export HISTCONTROL=ignoreboth
+PROMPT_COMMAND='history -a'
+shopt -s histappend
+
+PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor/bin:/site/.composer/vendor/bin:${PATH}"
+
+cd /site/web
+
+eval "$(starship init bash)"

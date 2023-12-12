@@ -15,7 +15,7 @@ mkdir -p "$HOME/history"
 export HISTFILE="$HOME/history/zsh_history"
 export HISTSIZE=1000000
 export HISTFILESIZE=2000000
-export SAVEHIST=$HISTSIZE
+export SAVEHIST="$HISTSIZE"
 HISTTIMEFORMAT='%F %T '
 export HISTTIMEFORMAT
 export HISTCONTROL=ignoreboth

@@ -328,6 +328,7 @@ RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/
 
 COPY --link ./files/shell/starship/ "/root/.config/"
 COPY --link ./files/shell/zshrc/ "/root/"
+COPY --link ./files/shell/bash/ "/root/"
 
 COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/starship/ "/site/.config/"
 COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/zshrc/ "/site/"
@@ -340,21 +341,14 @@ RUN cd /root/ && \
     git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
-    echo 'eval "$(starship init bash)"' >> /root/.bashrc && \
-    echo 'eval "$(starship init bash)"' >> /site/.bashrc && \
-    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
-    find /site/.oh-my-zsh -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
-    find /site/.bashrc -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
-    find /site/.zshrc -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
+    cat /root/bash_extra >> /root/.bashrc && \
+    cat /root/bash_extra >> /site/.bashrc && \
+    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
 COPY --link ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
 COPY --link ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
 
-RUN echo 'PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor/bin:/site/.composer/vendor/bin:${PATH}"' >> /site/.bashrc && \
-    echo 'shopt -s histappend' >> /site/.bashrc && \
-    echo 'PROMPT_COMMAND="history -a;$PROMPT_COMMAND"' >> /site/.bashrc && \
-    echo 'cd /site/web' >> /site/.bashrc && \
-    mkdir -p /site/web/pharbin && \
+RUN mkdir -p /site/web/pharbin && \
     touch /root/.bash_profile /site/.bash_profile && \
     chown root: /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
     chmod u+rw /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
@@ -364,9 +358,7 @@ RUN echo 'PATH="/usr/bin:/site/web/pharbin:/site/web/vendor/bin:/site/web/vendor
 WORKDIR /site/web
 
 RUN mkdir -p /site/tmp && \
-    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
-    find /site/.bash_profile -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+ && \
-    find /site/tmp -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
+    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
 COPY --link ./files/nginx_config /site/nginx/config
 
@@ -445,7 +437,7 @@ COPY --link ./files/supervisord_base.conf /supervisord_base.conf
 COPY --link ./files/rsyslog.conf /etc/rsyslog.conf
 COPY --link ./files/rsyslog.d/50-default.conf /etc/rsyslog.d/50-default.conf
 
-COPY --link --chmod=0744 ./files/run_with_env.sh /bin/run_with_env.sh
+COPY --link --chmod=0755 ./files/run_with_env.sh /bin/run_with_env.sh
 COPY --link --chmod=0744 ./files/start.sh /start.sh
 COPY --link --chmod=0744 ./files/testLoop.sh /testLoop.sh
 COPY --link --chmod=0744 ./files/healthCheck.sh /healthCheck.sh

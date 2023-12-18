@@ -1,0 +1,185 @@
+* text=auto eol=lf
+
+[attr]python-file diff=python eol=lf
+# [attr]lfs-file filter=lfs diff=lfs merge=lfs -text
+[attr]lfs-file binary
+[attr]lfs-file-text text
+
+# Force batch scripts to always use CRLF line endings so that if a repo is accessed
+# in Windows via a file share from Linux, the scripts will work.
+*.vcproj text eol=crlf
+*.[bB][aA][tT] text eol=crlf
+*.[cC][mM][dD] text eol=crlf
+*.[iI][cC][sS] text eol=crlf
+
+#programming
+*.blade.php text diff=html eol=lf
+*.css text diff=css eol=lf linguist-vendored
+*.htm text diff=html eol=lf linguist-vendored
+*.html text diff=html eol=lf linguist-vendored
+*.js text eol=lf
+*.json text eol=lf
+*.jsx text eol=lf
+*.less text diff=less eol=lf linguist-vendored
+*.mustache text eol=lf
+*.phar lfs-file
+*.php text diff=php eol=lf
+*.phpt text diff=php eol=lf
+*.phtml text diff=php eol=lf
+*.rb text diff=ruby eol=lf
+*.sass text diff=sass eol=lf linguist-vendored
+*.scss text diff=css eol=lf linguist-vendored
+*.scss text diff=scss eol=lf linguist-vendored
+*.ts text eol=lf
+*.tsx text eol=lf
+*.xhtml text diff=html eol=lf linguist-vendored
+*.yaml text eol=lf
+
+## Docs
+*.adoc text eol=lf
+*.coffee text eol=lf
+*.log text eol=lf
+*.markdown text diff=markdown eol=lf linguist-vendored
+*.md text diff=markdown eol=lf linguist-vendored
+*.textile text eol=lf
+*.txt text eol=lf linguist-vendored
+
+## Data
+*.csv text
+*.sql text eol=lf
+*.tab text
+*.tsv text
+
+## python
++*.pxd text python-file
++*.py text python-file
++*.py3 text python-file
++*.pyi text python-file
++*.pyw text python-file
++*.pyx text python-file
++*.pyz text python-file
+
+## Git
+.gitattributes text export-ignore
+.gitconfig text export-ignore
+.github text export-ignore
+.gitignore text export-ignore
+.gitmodules text export-ignore
+
+## General Development
+.browserslistrc text export-ignore
+.csslintrc* text export-ignore
+.editorconfig text export-ignore
+.eslintignore* text export-ignore
+.eslintrc* text export-ignore
+.npmignore text export-ignore
+.styleci* text export-ignore
+.stylelintrc* text export-ignore
+.stylelintrc* text export-ignore
+AUTHORS* text export-ignore
+CHANGELOG* text export-ignore
+RELEASE* text export-ignore
+
+# Denote all files that are truly binary and should not be modified.
+# images
+*.bmp lfs-file
+*.eps lfs-file
+*.gif lfs-file
+*.ico lfs-file
+*.jpeg lfs-file
+*.jpg lfs-file
+*.png lfs-file
+*.psd lfs-file
+*.svg lfs-file-text
+*.svgz lfs-file-text
+*.tif lfs-file
+*.tiff lfs-file
+*.webp lfs-file
+*.xcf lfs-file
+
+# video/audio
+*.mov lfs-file
+*.mp3 lfs-file
+*.mp4 lfs-file
+*.ogg lfs-file
+*.webm lfs-file
+
+# fonts
+*.eot lfs-file
+*.otf lfs-file
+*.ttf lfs-file
+*.woff lfs-file
+*.woff2 lfs-file
+
+# adobe
+*.ai lfs-file
+*.idml lfs-file
+*.indd lfs-file
+*.pdf lfs-file
+*.psd lfs-file
+
+# office
+*.doc lfs-file
+*.docx lfs-file
+*.ppt lfs-file
+*.pptx lfs-file
+
+# iwork
+*.key lfs-file
+*.numbers lfs-file
+*.pages lfs-file
+
+# affinity suite
+*.afdesign lfs-file
+
+# other
+*.flv lfs-file
+
+# archive / compression
+*.7z lfs-file
+*.ace lfs-file
+*.ar lfs-file
+*.bz2 lfs-file
+*.cab lfs-file
+*.gz lfs-file
+*.iso lfs-file
+*.jar lfs-file
+*.lz lfs-file
+*.lzh lfs-file
+*.lzma lfs-file
+*.rar lfs-file
+*.s7z lfs-file
+*.sitx lfs-file
+*.tar lfs-file
+*.tar.* lfs-file
+*.tgz lfs-file
+*.tlz lfs-file
+*.txz lfs-file
+*.xz lfs-file
+*.zip lfs-file
+*.zipx lfs-file
+*.zz lfs-file
+
+## Windows
+*.dll lfs-file
+*.exe lfs-file
+
+# Linux
+*.deb lfs-file
+*.sh text diff=bash eol=lf linguist-vendored
+*.so binary
+
+## Docker
+*.dockerignore text export-ignore
+Dockerfile text diff=dockerfile eol=lf
+
+## Congiguration
+*.cfg text
+*.cnf text
+*.conf text
+*.config text
+*.ini text
+*.xls text eol=lf
+*.xlsx text eol=lf
+*.xml text diff=xml eol=lf
+.htaccess text

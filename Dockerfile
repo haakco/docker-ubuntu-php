@@ -9,8 +9,14 @@ ARG BASE_IMAGE_TAG=""
 ARG PHP_VERSION=''
 ARG NODE_MAJOR='20'
 ARG TARGETARCH
+ARG TARGETOS
 ARG TZ="UTC"
 ARG WEB_USER="web"
+ARG DOCKERIZE_VERSION="v0.7.0"
+ARG PHP_ERROR_LOG="/proc/self/fd/2"
+ARG PHP_ACCESS_LOG="/proc/self/fd/2"
+ARG PHP_IDENT="php"
+ARG PHP_FPM_IDENT="php-fpm"
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
@@ -23,9 +29,15 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
     BASE_IMAGE_TAG="${BASE_IMAGE_TAG}" \
     TARGETARCH="${TARGETARCH}" \
+    TARGETOS="${TARGETOS}" \
     PHP_VERSION="${PHP_VERSION}" \
     NODE_MAJOR="${NODE_MAJOR}" \
-    WEB_USER="${WEB_USER}"
+    WEB_USER="${WEB_USER}" \
+    DOCKERIZE_VERSION=${DOCKERIZE_VERSION} \
+    PHP_ERROR_LOG="${PHP_ERROR_LOG}" \
+    PHP_ACCESS_LOG="${PHP_ACCESS_LOG}" \
+    PHP_IDENT="${PHP_IDENT}" \
+    PHP_FPM_IDENT="${PHP_FPM_IDENT}"
 
 ENV JOBS="8"
 
@@ -221,6 +233,7 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_OPCACHE_REVALIDATE_FREQ="1" \
     PHP_OPCACHE_PRELOAD_FILE="" \
     COMPOSER_PROCESS_TIMEOUT=2000 \
+    FPM_TIMEOUT=600 \
     FPM_LISTEN_BACKLOG=1024 \
     FPM_MAX_CHILDREN=32 \
     FPM_START_SERVERS=4 \
@@ -234,77 +247,83 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     mkdir -p /usr/local/bin && \
     ln -sf /bin/composer /usr/local/bin/composer
 
-RUN   cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini.bak && \
-      cp /etc/php/${PHP_VERSION}/fpm/php.ini /etc/php/${PHP_VERSION}/fpm/php.ini.bak && \
-      sed -Ei \
-        -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
-        -e "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/"  \
-        -e "s/short_open_tag = .*/short_open_tag = Off/" \
-        -e "s@;date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
+RUN cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini.bak && \
+    cp /etc/php/${PHP_VERSION}/fpm/php.ini /etc/php/${PHP_VERSION}/fpm/php.ini.bak
+
+RUN sed -Ei \
+      -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
+      -e "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/"  \
+      -e "s/short_open_tag = .*/short_open_tag = Off/" \
+      -e "s@;date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
+      /etc/php/${PHP_VERSION}/cli/php.ini \
+      /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
         -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
         -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
         -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
         -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
         -e "s/;default_charset = \"iso-8859-1\"/default_charset = \"UTF-8\"/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-   sed -Ei \
-       -e "s/;realpath_cache_size = .*/realpath_cache_size = 16384K/" \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
+        -e "s/;realpath_cache_size = .*/realpath_cache_size = 16384K/" \
         -e "s/;realpath_cache_ttl = .*/realpath_cache_ttl = 7200/" \
         -e "s/;intl.default_locale =/intl.default_locale = en/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
-        -e "s/precision.*/precision = 17/" \
-        -e "s/;opcache.enable=.*/opcache.enable=1/" \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
+        -e "s/serialize_precision.*/serialize_precision = -1/" \
+        -e "s/precision.*/precision = -1/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
-        -e "s/^error_log.+/error_log = stderr/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
+        -e "s#^(;|)error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
+        -e "s#^(;|)syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
+        /etc/php/"${PHP_VERSION}"/cli/php.ini \
+        /etc/php/"${PHP_VERSION}"/fpm/php.ini
+
+RUN sed -Ei \
         -e "s/;opcache.enable_cli=.*/opcache.enable_cli=1/" \
+        -e "s/;opcache.enable=.*/opcache.enable=1/" \
         -e "s/;opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
         -e "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
         -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
         -e "s/;opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
         -e "s/;opcache.fast_shutdown=.*/opcache.fast_shutdown=0/" \
         -e "s/;opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
         -e "s/;opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
         -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
         -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
         -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
         -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
-        -e "s/serialize_precision.*/serialize_precision = -1/" \
-        -e "s/precision.*/precision = 16/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini && \
-    sed -Ei \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
         /etc/php/${PHP_VERSION}/fpm/php.ini
 
 RUN sed -Ei \
-        -e "s/error_log = .*/error_log = syslog/" \
-        -e "s/.*syslog\.ident = .*/syslog.ident = php-fpm/" \
+        -e "s#error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
+        -e "s#.*syslog\.ident = .*#syslog.ident = ${PHP_FPM_IDENT}#" \
         -e "s/.*log_buffering = .*/log_buffering = yes/" \
-        /etc/php/${PHP_VERSION}/fpm/php-fpm.conf && \
-    echo "request_terminate_timeout = 600" >> /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
+        /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
 
 RUN sed -Ei \
+        -e "s#^(;|)access.log = .*#access.log = ${PHP_ACCESS_LOG}#" \
         -e "s/^user = .*/user = ${WEB_USER}/" \
         -e "s/^group = .*/group = ${WEB_USER}/" \
         -e 's/listen\.owner.*/listen.owner = ${WEB_USER}/' \
@@ -315,10 +334,21 @@ RUN sed -Ei \
         -e "s/^pm\.min_spare_servers = .*/pm.min_spare_servers = ${FPM_MIN_SPARE_SERVERS}/" \
         -e "s/^pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
         -e "s/.*pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
+        -e "s/^(;|)catch_workers_output = .*/catch_workers_output = yes/" \
+        -e "s/^(;|)decorate_workers_output = .*/decorate_workers_output = no/" \
         -e "s/.*pm\.status_path = .*/pm.status_path = \/fpm-status/" \
-        -e "s/.*ping\.path = .*/ping.path = \/fpm-ping/" \
+        -e "s/^(;|)pm.status_listen = .*/pm.status_listen = 127.0.0.1:9001/" \
+        -e "s/^(;|)ping\.path = .*/ping.path = \/fpm-ping/" \
         -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
+        -e 's/;request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/' \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
+
+RUN echo "php_flag[display_errors] = off" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf && \
+    echo "php_admin_flag[log_errors] = on" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf && \
+    echo "php_admin_flag[fastcgi.logging] = off" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf && \
+    echo "php_admin_value[error_log] = /proc/self/fd/2" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
+
+RUN wget -O - "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-${TARGETOS}-${TARGETARCH}-${DOCKERIZE_VERSION}.tar.gz" | tar xzf - -C /usr/local/bin
 
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
     usermod -a -G tty "${WEB_USER}" && \

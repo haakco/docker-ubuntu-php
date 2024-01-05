@@ -8,6 +8,7 @@ export PHP_VERSION=${PHP_VERSION:-"7.4"}
 
 export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_WEB=${ENABLE_WEB:-"TRUE"}
+export CREAT_API_ENV_FILE=${CREAT_API_ENV_FILE:-"TRUE"}
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
 export ENABLE_PULSE=${ENABLE_PULSE:-"FALSE"}
 export ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-"FALSE"}
@@ -185,7 +186,7 @@ MAILTO=""
 0 * * * * /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 
 #rename on start
-@reboot find /site/web/.env -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
+@reboot find /site/web/.envDocker -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 @reboot sleep 5 && find /site -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 
 EndOfMessage
@@ -213,7 +214,10 @@ if [[ "${ENABLE_DEBUG}" = "TRUE" ]]; then
 fi
 
 if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then
-  env | grep 'LVENV_' | sort | sed -E -e 's/"/\\"/g' -e 's#LVENV_(.*)=#\1=#' -e 's#=(.+)#="\1"#' > /site/web/.env
+  env | grep 'LVENV_' | sort | sed -E -e 's/"/\\"/g' -e 's#LVENV_(.*)=#\1=#' -e 's#=(.+)#="\1"#' > /site/web/.envDocker
+  if [[ "${CREAT_API_ENV_FILE}" = "TRUE" ]]; then
+    cp -f /site/web/.envDocker /site/web/.env
+  fi
 fi
 
 # Try to fix rsyslogd: file '/dev/stdout': open error: Permission denied

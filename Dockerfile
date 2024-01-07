@@ -460,7 +460,8 @@ ENV NGINX_SITES='locahost' \
     ENABLE_PULSE="FALSE" \
     ENABLE_SIMPLE_QUEUE="FALSE" \
     SIMPLE_WORKER_NUM="5" \
-    ENABLE_SSH="FALSE"
+    ENABLE_SSH="FALSE" \
+    ENABLE_HEALTH_CHECK="FALSE"
 
 COPY --link ./files/supervisord_base.conf /supervisord_base.conf
 
@@ -473,10 +474,10 @@ COPY --link --chmod=0744 ./files/testLoop.sh /testLoop.sh
 COPY --link --chmod=0744 ./files/healthCheck.sh /healthCheck.sh
 
 HEALTHCHECK \
-  --interval=30s \
-  --timeout=30s \
+  --interval=5s \
+  --timeout=2s \
   --start-period=15s \
-  --retries=10 \
+  --retries=60 \
   CMD /healthCheck.sh
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

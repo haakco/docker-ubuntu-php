@@ -203,7 +203,8 @@ RUN apt-get update && \
     echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
     pecl install excimer && \
     echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
-    phpenmod -v ${PHP_VERSION} excimer || \
+    phpenmod -v "${PHP_VERSION}"  excimer || \
+    phpdismod -v "${PHP_VERSION}"  xdebug  || \
     true
 
 #RUN test "${PHP_VERSION}" != "8.2" &&  \
@@ -215,7 +216,6 @@ RUN apt-get update && \
 #     && \
 #    apt-get -y autoremove || true
 
-COPY --link ./files/php/10-xdebug.ini "/etc/php/${PHP_VERSION}/mods-available/10-xdebug.ini"
 
 ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="128M" \

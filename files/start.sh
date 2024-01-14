@@ -209,8 +209,7 @@ sed -E -i -e "s/PHP_VERSION/${PHP_VERSION}/g" /supervisord.conf
 #fi
 
 if [[ "${ENABLE_DEBUG}" = "TRUE" ]]; then
-  ln -sf /etc/php/"${PHP_VERSION}"/mods-available/10-xdebug.ini /etc/php/"${PHP_VERSION}"/fpm/conf.d/10-xdebug.ini && \
-  ln -sf /etc/php/"${PHP_VERSION}"/mods-available/10-xdebug.ini /etc/php/"${PHP_VERSION}"/cli/conf.d/10-xdebug.ini
+  phpenmod -v "${PHP_VERSION}" xdebug
 fi
 
 if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then

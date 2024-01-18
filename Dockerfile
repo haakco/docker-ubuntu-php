@@ -54,14 +54,14 @@ RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
     apt-get install -qy \
-      software-properties-common && \
-    apt-get update && \
-    apt-get install -qy locales && \
+      software-properties-common \
+      locales \
+    && \
+    apt-get -qy dist-upgrade && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
     locale-gen en_ZA.UTF-8 && \
-    apt-get -qy dist-upgrade && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     apt-get install -qy \
@@ -74,33 +74,19 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
       && \
     apt-get -y autoremove
 
+#    add-apt-repository ppa:saiarcot895/chromium-beta -y && \
+
 RUN add-apt-repository -y ppa:ondrej/php && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y autoremove
-
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
-      postgresql-client \
-      && \
-    apt-get -y autoremove
-
-RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \
       tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get -qy dist-upgrade && \
-    apt-get install -y nodejs && \
     apt-get -y autoremove
 
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get install -qy \
+RUN apt-get install -qy \
       bash-completion build-essential \
       bzip2 \
       curl cron \
@@ -114,8 +100,7 @@ RUN apt-get update && \
       libssh2-1 libsodium-dev libuuid1 \
       logrotate \
       mysql-client \
-      net-tools \
-      nginx-extras \
+      net-tools nginx-extras nodejs \
       openssl openssh-server \
       pip procps psmisc \
       postgresql-client \
@@ -143,32 +128,19 @@ RUN apt-get update && \
     pngquant \
     gifsicle \
     webp \
+    \
     && \
     update-ca-certificates --fresh && \
     npm install -g svgo && \
     apt-get -y autoremove
 
+#RUN npx @puppeteer/browsers install --path /site/chrome chrome@stable && \
+#    npx @puppeteer/browsers install --path /site/chrome chromedriver
+
 # Install node for headless testing
 RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
 
-# Install chrome for headless testing
-RUN add-apt-repository ppa:saiarcot895/chromium-beta -y && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-          chromium-browser \
-          fonts-liberation \
-          libasound2 libnspr4 libnss3 libxss1 xdg-utils  \
-          libappindicator1 \
-          libappindicator3-1 libatk-bridge2.0-0 libatspi2.0-0 libgbm1 libgtk-3-0 \
-        && \
-    apt-get -y autoremove || \
-    true
-
-RUN apt-get update && \
-    apt-get -qy dist-upgrade && \
-    \
-    apt-get -y install \
+RUN apt-get -y install \
       libbrotli-dev libbrotli1 \
       libcurl4 libcurl4-openssl-dev \
       libicu[67]* libicu-* \

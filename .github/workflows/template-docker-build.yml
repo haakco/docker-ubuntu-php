@@ -29,15 +29,10 @@ on:
       PHP_VERSION:
         required: true
         type: string
-    secrets:
-      DOCKER_GITHUB_REGISTRY_USERNAME:
-        required: true
-      DOCKER_GITHUB_REGISTRY_PASSWORD:
-        required: true
-      DOCKER_REGISTRY_USERNAME:
-        required: true
-      DOCKER_REGISTRY_PASSWORD:
-        required: true
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   docker_build_and_push:
@@ -68,17 +63,12 @@ jobs:
             type=semver,pattern={{major}}
             type=edge,enable=true,branch=$repo.default_branch # Tag edge to default
             type=raw,value=latest,enable={{is_default_branch}} # Only set latest on default branch
-      - name: Login to HUB Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
-          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-      - name: Login to Github Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ inputs.DOCKER_GITHUB_REGISTRY }}
-          username: ${{ secrets.DOCKER_GITHUB_REGISTRY_USERNAME }}
-          password: ${{ secrets.DOCKER_GITHUB_REGISTRY_PASSWORD }}
+          registry: ghcr.io/haakco
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx

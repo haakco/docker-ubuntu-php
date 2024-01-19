@@ -95,7 +95,7 @@ RUN apt-get install -qy \
       ftp fzf \
       gawk git git-extras git-core git-lfs gnupg2 \
       ghostscript ghostscript-x gsfonts-other \
-      inetutils-ping inetutils-tools \
+      imagemagick imagemagick-common inetutils-ping inetutils-tools \
       jq \
       libssh2-1 libsodium-dev libuuid1 \
       logrotate \

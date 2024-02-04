@@ -29,8 +29,6 @@ on:
       PHP_VERSION:
         required: true
         type: string
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions:
   contents: read

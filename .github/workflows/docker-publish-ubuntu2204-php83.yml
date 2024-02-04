@@ -22,5 +22,3 @@ jobs:
       BASE_IMAGE_NAME: 'ubuntu'
       BASE_IMAGE_TAG: '22.04'
       PHP_VERSION: '8.3'
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

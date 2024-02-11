@@ -19,9 +19,10 @@ ARG PHP_IDENT="php"
 ARG PHP_FPM_IDENT="php-fpm"
 
 ENV DEBIAN_FRONTEND="noninteractive" \
-    LANG="en_US.UTF-8" \
-    LANGUAGE="en_US.UTF-8" \
-    LC_ALL="C.UTF-8" \
+    LANG="en_ZA.UTF-8" \
+    LANGUAGE="en_ZA.UTF-8" \
+    LC_ALL="en_ZA.UTF-8" \
+    LC_MEASUREMENT="en_ZA.UTF-8" \
     TERM="xterm" \
     TZ="${TZ}" \
     TIMEZONE="${TZ}"
@@ -58,6 +59,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
       locales \
     && \
     apt-get -qy dist-upgrade && \
+    echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \

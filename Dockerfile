@@ -195,6 +195,8 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_MEMORY_LIMIT="3G" \
     PHP_MAX_EXECUTION_TIME="600" \
     PHP_MAX_INPUT_TIME="600" \
+    PHP_SERIAL_PRECISION ="18" \
+    PHP_PRECISION ="18" \
     PHP_DEFAULT_SOCKET_TIMEOUT="600" \
     PHP_OPCACHE_MEMORY_CONSUMPTION="128" \
     PHP_OPCACHE_INTERNED_STRINGS_BUFFER="16" \
@@ -247,8 +249,8 @@ RUN sed -Ei \
         /etc/php/${PHP_VERSION}/fpm/php.ini
 
 RUN sed -Ei \
-        -e "s/serialize_precision.*/serialize_precision = -1/" \
-        -e "s/precision.*/precision = -1/" \
+        -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
+        -e "s/precision.*/precision = ${PHP_PRECISION}/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini
 
@@ -272,6 +274,14 @@ RUN sed -Ei \
         -e "s/;opcache.fast_shutdown=.*/opcache.fast_shutdown=0/" \
         -e "s/;opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
         -e "s/;opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
+        /etc/php/${PHP_VERSION}/cli/php.ini \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN sed -Ei \
+        -e "s/precision = .*/precision = -1/" \
+        -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
+        -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
+        -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini
 

@@ -34,6 +34,8 @@ export PHP_POST_MAX_SIZE=${PHP_POST_MAX_SIZE:-"128M"}
 export PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-"3G"}
 export PHP_MAX_EXECUTION_TIME=${PHP_MAX_EXECUTION_TIME:-"600"}
 export PHP_MAX_INPUT_TIME=${PHP_MAX_INPUT_TIME:-"600"}
+export PHP_SERIAL_PRECISION=${PHP_SERIAL_PRECISION:-"18"}
+export PHP_PRECISION=${PHP_PRECISION:-"18"}
 export PHP_DEFAULT_SOCKET_TIMEOUT=${PHP_DEFAULT_SOCKET_TIMEOUT:-"600"}
 export PHP_OPCACHE_MEMORY_CONSUMPTION=${PHP_OPCACHE_MEMORY_CONSUMPTION:-"128"}
 export PHP_OPCACHE_INTERNED_STRINGS_BUFFER=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER:-"16"}
@@ -69,6 +71,12 @@ sed -Ei \
   -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
   /etc/php/"${PHP_VERSION}"/cli/php.ini \
   /etc/php/"${PHP_VERSION}"/fpm/php.ini
+
+sed -Ei \
+  -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
+  -e "s/precision.*/precision = ${PHP_PRECISION}/" \
+  /etc/php/${PHP_VERSION}/cli/php.ini \
+  /etc/php/${PHP_VERSION}/fpm/php.ini
 
 sed -Ei \
   -e "s#^error_log = .*#error_log = ${PHP_ERROR_LOG}#" \

@@ -95,7 +95,7 @@ RUN apt-get install -qy \
       dos2unix dnsutils dumb-init \
       expect \
       ftp fzf \
-      gawk git git-extras git-core git-lfs gnupg2 \
+      gawk git git-extras git-core git-lfs golang gnupg2 \
       ghostscript ghostscript-x gsfonts-other \
       imagemagick imagemagick-common inetutils-ping inetutils-tools \
       jq \
@@ -133,6 +133,7 @@ RUN apt-get install -qy \
     \
     && \
     update-ca-certificates --fresh && \
+    GOBIN=/usr/local/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@latest && \
     npm install -g svgo && \
     apt-get -y autoremove
 

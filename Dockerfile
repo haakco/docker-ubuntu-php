@@ -117,6 +117,7 @@ RUN apt-get install -qy \
       vim \
       wget whois \
       xz-utils \
+      yamllint \
       zlib1g-dev \
       zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
     \

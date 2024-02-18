@@ -356,6 +356,7 @@ RUN cd /root/ && \
     git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
+    git clone https://github.com/jessarcher/zsh-artisan.git ~/.oh-my-zsh/custom/plugins/artisan && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
     cat /root/bash_extra >> /root/.bashrc && \
     cat /root/bash_extra >> /site/.bashrc && \

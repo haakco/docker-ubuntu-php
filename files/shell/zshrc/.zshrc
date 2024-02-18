@@ -186,7 +186,7 @@ export FZF_BASE=~/fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 plugins=(
-  aliases ansible \
+  aliases ansible artisan \
   colored-man-pages colorize command-not-found common-aliases compleat composer cp \
   debian docker docker-compose \
   fancy-ctrl-z fd fzf fzf-tab \

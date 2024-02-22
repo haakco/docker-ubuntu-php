@@ -117,7 +117,6 @@ RUN apt-get install -qy \
       vim \
       wget whois \
       xz-utils \
-      yamllint \
       zlib1g-dev \
       zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
     \
@@ -143,6 +142,8 @@ RUN apt-get install -qy \
 
 # Install node for headless testing
 RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
+
+RUN pip3 install --user yamllint
 
 RUN apt-get -y install \
       libbrotli-dev libbrotli1 \

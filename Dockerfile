@@ -361,6 +361,8 @@ RUN cd /root/ && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
     cat /root/bash_extra >> /root/.bashrc && \
     cat /root/bash_extra >> /site/.bashrc && \
+    echo "cd /site/web" >> /root/.bashrc && \
+    echo "cd /site/web" >> /root/.zshrc && \
     find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
 COPY --link ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt

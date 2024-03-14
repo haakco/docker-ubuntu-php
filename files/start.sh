@@ -10,7 +10,8 @@ export TEMP_CRON_FILE='/site/web/cronFile'
 export ENABLE_WEB=${ENABLE_WEB:-"TRUE"}
 export CREAT_API_ENV_FILE=${CREAT_API_ENV_FILE:-"TRUE"}
 export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
-export ENABLE_PULSE=${ENABLE_PULSE:-"FALSE"}
+export ENABLE_PULSE_CHECK=${ENABLE_PULSE_CHECK:-"FALSE"}
+export ENABLE_PULSE_WORK=${ENABLE_PULSE_WORK:-"FALSE"}
 export ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-"FALSE"}
 export LARAVEL_WEBSOCKETS_PORT=${LARAVEL_WEBSOCKETS_PORT:-"2096"}
 export ENABLE_SIMPLE_QUEUE=${ENABLE_SIMPLE_QUEUE:-"FALSE"}
@@ -147,10 +148,16 @@ else
   sed -E -i -e 's/^numprocs=SIMPLE_WORKER_NUM$/numprocs=0/' /supervisord.conf
 fi
 
-if [[ "${ENABLE_PULSE}" = "TRUE" ]]; then
-  sed -E -i -e 's/^numprocs=ENABLE_PULSE$/numprocs=1/' /supervisord.conf
+if [[ "${ENABLE_PULSE_WORK}" = "TRUE" ]]; then
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE_WORK/numprocs=1/' /supervisord.conf
 else
-  sed -E -i -e 's/^numprocs=ENABLE_PULSE$/numprocs=0/' /supervisord.conf
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE_WORK/numprocs=0/' /supervisord.conf
+fi
+
+if [[ "${ENABLE_PULSE_CHECK}" = "TRUE" ]]; then
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE_CHECK/numprocs=1/' /supervisord.conf
+else
+  sed -E -i -e 's/^numprocs=ENABLE_PULSE_CHECK/numprocs=0/' /supervisord.conf
 fi
 
 if [[ "${ENABLE_WEBSOCKET}" = "TRUE" ]]; then

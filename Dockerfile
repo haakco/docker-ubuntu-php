@@ -62,8 +62,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
-    locale-gen en_US.UTF-8 && \
-    locale-gen en_ZA.UTF-8 && \
+    locale-gen && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     apt-get install -qy \
@@ -447,7 +446,8 @@ ENV NGINX_SITES='locahost' \
     INITIALISE_FILE="/site/web/initialise.sh" \
     LV_DO_CACHING="FALSE" \
     ENABLE_HORIZON="FALSE" \
-    ENABLE_PULSE="FALSE" \
+    ENABLE_PULSE_CHECK="FALSE" \
+    ENABLE_PULSE_WORK="FALSE" \
     ENABLE_SIMPLE_QUEUE="FALSE" \
     SIMPLE_WORKER_NUM="5" \
     ENABLE_SSH="FALSE" \

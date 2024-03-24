@@ -90,7 +90,7 @@ jobs:
             PHP_VERSION=${{ inputs.PHP_VERSION }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          #          cache-from: type=gha
-          #          cache-to: type=gha,mode=max
-          cache-from: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }}
-          cache-to: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }},mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+#          cache-from: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }}
+#          cache-to: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }},mode=max

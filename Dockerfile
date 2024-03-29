@@ -201,9 +201,11 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_SERIAL_PRECISION="-1" \
     PHP_PRECISION="-1" \
     PHP_DEFAULT_SOCKET_TIMEOUT="600" \
-    PHP_OPCACHE_MEMORY_CONSUMPTION="128" \
-    PHP_OPCACHE_INTERNED_STRINGS_BUFFER="16" \
-    PHP_OPCACHE_MAX_ACCELERATED_FILES="16229" \
+    PHP_OPCACHE_MEMORY_CONSUMPTION="512" \
+    PHP_OPCACHE_JIT_BUFFER_SIZE="256M" \
+    PHP_OPCACHE_JIT="1205" \
+    PHP_OPCACHE_INTERNED_STRINGS_BUFFER="64" \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES="65407" \
     PHP_OPCACHE_REVALIDATE_PATH="1" \
     PHP_OPCACHE_ENABLE_FILE_OVERRIDE="0" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
@@ -269,34 +271,28 @@ RUN sed -Ei \
         -e "s/;opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
         -e "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
         -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
         -e "s/;opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
         -e "s/;opcache.fast_shutdown=.*/opcache.fast_shutdown=0/" \
         -e "s/;opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
         -e "s/;opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
+        -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
+        -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
+        -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
+        -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
+        -e "s/;opcache.max_wasted_percentage=.*/;opcache.max_wasted_percentage=10/" \
         /etc/php/${PHP_VERSION}/cli/php.ini \
         /etc/php/${PHP_VERSION}/fpm/php.ini
+
+RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache.ini
+; configuration for php opcache module
+; priority=10
+zend_extension=opcache.so
+opcache.jit_buffer_size=${PHP_OPCACHE_JIT_BUFFER_SIZE}
+opcache.jit=${PHP_OPCACHE_JIT}
+FILE1
 
 RUN sed -Ei \
         -e "s/precision = .*/precision = -1/" \
-        -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
-        -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
-        -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
-        -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
-        -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
-        -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
-        -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
         /etc/php/${PHP_VERSION}/fpm/php.ini

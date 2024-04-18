@@ -47,7 +47,6 @@ export PHP_OPCACHE_REVALIDATE_PATH=${PHP_OPCACHE_REVALIDATE_PATH:-"1"}
 export PHP_OPCACHE_ENABLE_FILE_OVERRIDE=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE:-"0"}
 export PHP_OPCACHE_VALIDATE_TIMESTAMPS=${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-"1"}
 export PHP_OPCACHE_REVALIDATE_FREQ=${PHP_OPCACHE_REVALIDATE_FREQ:-"0"}
-export PHP_OPCACHE_PRELOAD_FILE=${PHP_OPCACHE_PRELOAD_FILE:-""}
 
 export FPM_TIMEOUT=${FPM_TIMEOUT:-600}
 export FPM_LISTEN_BACKLOG=${FPM_LISTEN_BACKLOG:-1024}
@@ -64,30 +63,14 @@ sed -Ei \
   -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
   -e "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/"  \
   -e "s@date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
-  /etc/php/"${PHP_VERSION}"/cli/php.ini \
-  /etc/php/"${PHP_VERSION}"/fpm/php.ini
-
-sed -Ei \
   -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
   -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
   -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
   -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
-  /etc/php/"${PHP_VERSION}"/cli/php.ini \
-  /etc/php/"${PHP_VERSION}"/fpm/php.ini
-
-sed -Ei \
   -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
   -e "s/precision.*/precision = ${PHP_PRECISION}/" \
-  /etc/php/${PHP_VERSION}/cli/php.ini \
-  /etc/php/${PHP_VERSION}/fpm/php.ini
-
-sed -Ei \
   -e "s#^error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
   -e "s#^syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
-  /etc/php/"${PHP_VERSION}"/cli/php.ini \
-  /etc/php/"${PHP_VERSION}"/fpm/php.ini
-
-sed -i \
   -e "s/opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
   -e "s/opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
   -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
@@ -95,17 +78,8 @@ sed -i \
   -e "s/opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
   -e "s/opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
   -e "s/opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
-  /etc/php/"${PHP_VERSION}"/cli/php.ini \
-  /etc/php/"${PHP_VERSION}"/fpm/php.ini
-
-
-
-if [[ "${PHP_OPCACHE_PRELOAD_FILE}" != "" ]]; then
-  sed -i \
-    -e "s#;opcache.preload=.*#opcache.preload=${PHP_OPCACHE_PRELOAD_FILE}#" \
-    -e "s#;opcache.preload_user=.*#opcache.preload_user=web#" \
-    /etc/php/"${PHP_VERSION}"/fpm/php.ini
-fi
+  "/etc/php/${PHP_VERSION}/cli/php.ini" \
+  "/etc/php/${PHP_VERSION}/fpm/php.ini"
 
 sed -Ei \
   -e "s#^(;|)access.log = .*#access.log = ${PHP_ACCESS_LOG}#" \
@@ -117,16 +91,9 @@ sed -Ei \
   -e "s/^(;|)pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
   -e "s/^(;|)pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
   -e "s#^(;|)request_terminate_timeout = .*#request_terminate_timeout = ${FPM_TIMEOUT}#" \
-  /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
-
-sed -Ei \
   -e "s/^listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
-  -e "s/^pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
-  -e "s/^pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
-  -e "s/^pm\.min_spare_servers = .*/pm.min_spare_servers = ${FPM_MIN_SPARE_SERVERS}/" \
-  -e "s/^pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
-  -e "s/^pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
-  /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
+  -e "s/^(;|)clear_env = .*/clear_env = no/" \
+  "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
 
 cp /supervisord_base.conf /supervisord.conf
 

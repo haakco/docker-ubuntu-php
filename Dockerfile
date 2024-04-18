@@ -23,7 +23,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LANGUAGE="en_ZA.UTF-8" \
     LC_ALL="en_ZA.UTF-8" \
     LC_MEASUREMENT="en_ZA.UTF-8" \
-    TERM="xterm" \
+    TERM="xterm-256color" \
     TZ="${TZ}" \
     TIMEZONE="${TZ}"
 
@@ -34,11 +34,7 @@ ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
     PHP_VERSION="${PHP_VERSION}" \
     NODE_MAJOR="${NODE_MAJOR}" \
     WEB_USER="${WEB_USER}" \
-    DOCKERIZE_VERSION=${DOCKERIZE_VERSION} \
-    PHP_ERROR_LOG="${PHP_ERROR_LOG}" \
-    PHP_ACCESS_LOG="${PHP_ACCESS_LOG}" \
-    PHP_IDENT="${PHP_IDENT}" \
-    PHP_FPM_IDENT="${PHP_FPM_IDENT}"
+    DOCKERIZE_VERSION=${DOCKERIZE_VERSION}
 
 ENV JOBS="8"
 
@@ -163,9 +159,9 @@ RUN apt-get -y install \
       php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql php${PHP_VERSION}-protobuf \
       php${PHP_VERSION}-raphf php${PHP_VERSION}-rdkafka php${PHP_VERSION}-readline php${PHP_VERSION}-redis \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 php${PHP_VERSION}-swoole \
-      php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml \
+      php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml php${PHP_VERSION}-xsl \
       php${PHP_VERSION}-uuid \
-      php${PHP_VERSION}-zip \
+      php${PHP_VERSION}-zip php${PHP_VERSION}-zstd \
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
     apt-get install -y \
@@ -205,20 +201,25 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_OPCACHE_JIT_BUFFER_SIZE="256M" \
     PHP_OPCACHE_JIT="1205" \
     PHP_OPCACHE_INTERNED_STRINGS_BUFFER="64" \
-    PHP_OPCACHE_MAX_ACCELERATED_FILES="65407" \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES="65536" \
     PHP_OPCACHE_REVALIDATE_PATH="1" \
     PHP_OPCACHE_ENABLE_FILE_OVERRIDE="0" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPCACHE_REVALIDATE_FREQ="1" \
-    PHP_OPCACHE_PRELOAD_FILE="" \
     COMPOSER_PROCESS_TIMEOUT=2000 \
+    \
     FPM_TIMEOUT=600 \
     FPM_LISTEN_BACKLOG=1024 \
     FPM_MAX_CHILDREN=32 \
     FPM_START_SERVERS=4 \
     FPM_MIN_SPARE_SERVERS=4 \
     FPM_MAX_SPARE_SERVERS=8 \
-    FPM_MAX_REQUESTS=1000
+    FPM_MAX_REQUESTS=1000 \
+    \
+    PHP_ERROR_LOG="${PHP_ERROR_LOG}" \
+    PHP_ACCESS_LOG="${PHP_ACCESS_LOG}" \
+    PHP_IDENT="${PHP_IDENT}" \
+    PHP_FPM_IDENT="${PHP_FPM_IDENT}"
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/bin --filename=composer && \
@@ -234,54 +235,35 @@ RUN sed -Ei \
       -e "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/"  \
       -e "s/short_open_tag = .*/short_open_tag = Off/" \
       -e "s@;date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
+      -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
+      -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
+      -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
+      -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
+      -e "s/;default_charset = \"iso-8859-1\"/default_charset = \"UTF-8\"/" \
+      -e "s/;realpath_cache_size = .*/realpath_cache_size = 16384K/" \
+      -e "s/;realpath_cache_ttl = .*/realpath_cache_ttl = 7200/" \
+      -e "s/;intl.default_locale =/intl.default_locale = en/" \
+      -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
+      -e "s/precision.*/precision = ${PHP_PRECISION}/" \
+      -e "s#^(;|)error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
+      -e "s#^(;|)syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
+    \
+      -e "s/;opcache.enable_cli=.*/opcache.enable_cli=1/" \
+      -e "s/;opcache.enable=.*/opcache.enable=1/" \
+      -e "s/;opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
+      -e "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
+      -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
+      -e "s/;opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
+      -e "s/;opcache.fast_shutdown=.*/opcache.fast_shutdown=0/" \
+      -e "s/;opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
+      -e "s/;opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
+      -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
+      -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
+      -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
+      -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
+      -e "s/;opcache.max_wasted_percentage=.*/;opcache.max_wasted_percentage=10/" \
       /etc/php/${PHP_VERSION}/cli/php.ini \
       /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
-        -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
-        -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
-        -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
-        -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
-        -e "s/;default_charset = \"iso-8859-1\"/default_charset = \"UTF-8\"/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
-        -e "s/;realpath_cache_size = .*/realpath_cache_size = 16384K/" \
-        -e "s/;realpath_cache_ttl = .*/realpath_cache_ttl = 7200/" \
-        -e "s/;intl.default_locale =/intl.default_locale = en/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
-        -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
-        -e "s/precision.*/precision = ${PHP_PRECISION}/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
-
-RUN sed -Ei \
-        -e "s#^(;|)error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
-        -e "s#^(;|)syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
-        /etc/php/"${PHP_VERSION}"/cli/php.ini \
-        /etc/php/"${PHP_VERSION}"/fpm/php.ini
-
-RUN sed -Ei \
-        -e "s/;opcache.enable_cli=.*/opcache.enable_cli=1/" \
-        -e "s/;opcache.enable=.*/opcache.enable=1/" \
-        -e "s/;opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
-        -e "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
-        -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
-        -e "s/;opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
-        -e "s/;opcache.fast_shutdown=.*/opcache.fast_shutdown=0/" \
-        -e "s/;opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
-        -e "s/;opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
-        -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
-        -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
-        -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
-        -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
-        -e "s/;opcache.max_wasted_percentage=.*/;opcache.max_wasted_percentage=10/" \
-        /etc/php/${PHP_VERSION}/cli/php.ini \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
 
 RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache.ini
 ; configuration for php opcache module
@@ -324,10 +306,12 @@ RUN sed -Ei \
         -e 's/;request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/' \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
-RUN echo "php_flag[display_errors] = off" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf && \
-    echo "php_admin_flag[log_errors] = on" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf && \
-    echo "php_admin_flag[fastcgi.logging] = off" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf && \
-    echo "php_admin_value[error_log] = /proc/self/fd/2" >> /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
+RUN cat <<-EOF >> "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
+  php_flag[display_errors] = off
+  php_admin_flag[log_errors] = on
+  php_admin_flag[fastcgi.logging] = off
+  php_admin_value[error_log] = ${PHP_ERROR_LOG}
+EOF
 
 RUN wget -O - "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-${TARGETOS}-${TARGETARCH}-${DOCKERIZE_VERSION}.tar.gz" | tar xzf - -C /usr/local/bin
 

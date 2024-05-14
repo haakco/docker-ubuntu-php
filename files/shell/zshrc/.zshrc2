@@ -184,18 +184,18 @@ export FZF_BASE=~/fzf
 plugins=(
   aliases alias-finder artisan \
   colored-man-pages colorize command-not-found common-aliases compleat composer cp \
-  debian docker docker-compose \
+  docker docker-compose \
+  eza \
   fancy-ctrl-z fd fzf fzf-tab \
-  git git-lfs gitignore golang gpg-agent \
+  gh git git-lfs gitignore golang gpg-agent \
+  kubectl kubectx \
   history history-substring-search \
   laravel \
-  man \
-  node node npm \
-  pip pipenv postgres python \
+  nmap node npm nvm \
+  pip pipenv poetry postgres python \
   redis-cli ripgrep rsync rust \
-  screen ssh-agent starship sudo supervisor systemd \
-  thefuck tmux tmuxinator \
-  ubuntu \
+  screen ssh-agent starship sudo supervisor \
+  tmux tmuxinator \
   zsh-256color zsh-autosuggestions zsh-syntax-highlighting zsh-interactive-cd zsh-navigation-tools \
 )
 
@@ -250,6 +250,13 @@ zstyle :bracketed-paste-magic paste-finish pastefinish
 PATH="$HOME/bin:/usr/local/bin:$PATH"
 PATH="./node_modules/.bin:./vendor/bin/:$PATH"
 
-eval "$(starship init zsh)"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-cd "cd $HOME/web"
+for file in "$HOME"/alias/*; do
+#     echo "loading $file"
+    source "$file"
+done
+
+eval "$(starship init zsh)"

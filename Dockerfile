@@ -151,13 +151,13 @@ RUN apt-get -y install \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-dev php${PHP_VERSION}-decimal \
-      php${PHP_VERSION}-gd php${PHP_VERSION}-gmp php${PHP_VERSION}-grpc \
+      php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-http \
       php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
-      php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql php${PHP_VERSION}-protobuf \
-      php${PHP_VERSION}-raphf php${PHP_VERSION}-rdkafka php${PHP_VERSION}-readline php${PHP_VERSION}-redis \
+      php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql \
+      php${PHP_VERSION}-raphf php${PHP_VERSION}-readline php${PHP_VERSION}-redis \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 \
       php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml php${PHP_VERSION}-xsl \
       php${PHP_VERSION}-zip php${PHP_VERSION}-zstd \
@@ -173,8 +173,9 @@ RUN apt-get -y install \
     echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
     pecl install excimer && \
     echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
-    phpenmod -v "${PHP_VERSION}"  excimer || \
-    phpdismod -v "${PHP_VERSION}"  xdebug  || \
+    phpenmod -v "${PHP_VERSION}" excimer || \
+    phpdismod -v "${PHP_VERSION}" xdebug  || \
+    phpdismod -v "${PHP_VERSION}" pcov  || \
     true
 
 #RUN test "${PHP_VERSION}" != "8.2" &&  \

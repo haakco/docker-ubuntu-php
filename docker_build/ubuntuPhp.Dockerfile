@@ -137,8 +137,6 @@ RUN apt-get install -qy \
 # Install node for headless testing
 RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
 
-RUN pip3 install --user yamllint
-
 RUN apt-get -y install \
       libbrotli-dev libbrotli1 \
       libcurl4 libcurl4-openssl-dev \
@@ -150,7 +148,7 @@ RUN apt-get -y install \
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
-      php${PHP_VERSION}-dev php${PHP_VERSION}-decimal \
+      php${PHP_VERSION}-dev \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-http \
       php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
@@ -175,8 +173,7 @@ RUN apt-get -y install \
     echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
     phpenmod -v "${PHP_VERSION}" excimer || \
     phpdismod -v "${PHP_VERSION}" xdebug  || \
-    phpdismod -v "${PHP_VERSION}" pcov  || \
-    true
+    phpdismod -v "${PHP_VERSION}" pcov
 
 #RUN test "${PHP_VERSION}" != "8.2" &&  \
 #    apt-get update && \
@@ -315,6 +312,10 @@ EOF
 
 RUN wget -O - "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-${TARGETOS}-${TARGETARCH}-${DOCKERIZE_VERSION}.tar.gz" | tar xzf - -C /usr/local/bin
 
+
+## Why add a user in the first place? :(
+RUN deluser --remove-home ubuntu || true
+
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
     usermod -a -G tty "${WEB_USER}" && \
     mkdir -p /site/web && \
@@ -371,10 +372,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=600 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
-
-## add pgcsv for csv to posgres import
-RUN pip3 install --upgrade pip && \
-    pip3 install --upgrade --default-timeout=100 pgcsv
 
 USER "${WEB_USER}"
 

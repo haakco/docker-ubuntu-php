@@ -1,59 +1,51 @@
 ---
 name: Reusable docker build
+# yamllint disable-line rule:truthy
 on:
   workflow_call:
     inputs:
-      DOCKER_GITHUB_REGISTRY:
-        required: false
-        type: string
-        default: ghcr.io/haakco
-      DOCKER_HUB_REGISTRY:
-        required: false
-        type: string
-        default: index.docker.io
       DOCKER_FILE:
+        required: true
+        type: string
+      DOCKER_REGISTRY:
         required: true
         type: string
       CREATE_IMAGE_NAME:
         required: true
         type: string
-      CREATE_IMAGE_CACHE_NAME:
-        required: true
-        type: string
       BASE_IMAGE_NAME:
         required: true
         type: string
-      BASE_IMAGE_TAG:
+      BASE_IMAGE_VERSION:
         required: true
         type: string
-      PHP_VERSION:
-        required: true
+      DOCKER_CONTEXT:
+        required: false
         type: string
-
-permissions:
-  contents: read
-  packages: write
-
+        default: .
+      BUILD_PLATFORMS:
+        required: false
+        type: string
+        default: "linux/amd64,linux/arm64/v8"
+      DOCKER_NO_CACHE:
+        required: false
+        type: boolean
+        default: false
 jobs:
   docker_build_and_push:
     name: Build and push base image
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     concurrency:
-      group: ${{ inputs.CREATE_IMAGE_NAME }}-${{ github.ref }}
+      group: "${{inputs.DOCKER_REGISTRY}}/${{inputs.CREATE_IMAGE_NAME}}:${{github.ref_name}}"
       cancel-in-progress: true
     steps:
-      - name: Fix cache ref_name
-        run: |
-          REF_NAME_TO_FIX=${{github.ref_name}}
-          REF_NAME_FIXED=${REF_NAME_TO_FIX/\//-} # replace all dots
-          echo CACHE_REF_NAME=${REF_NAME_FIXED} >> $GITHUB_ENV # update GitHub ENV vars
       - name: Check out the repo
         uses: actions/checkout@v4
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.CREATE_IMAGE_NAME }}
+          images: "${{inputs.DOCKER_REGISTRY}}/${{inputs.CREATE_IMAGE_NAME}}"
           tags: |
             type=ref,event=tag
             type=ref,event=branch
@@ -66,31 +58,46 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io/haakco
+          registry: ${{inputs.DOCKER_REGISTRY}}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ inputs.BUILD_PLATFORMS }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: |
+            image=moby/buildkit:master
             network=host
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{inputs.DOCKER_CONTEXT}}
           pull: true
           push: true
+          no-cache: ${{ inputs.DOCKER_NO_CACHE }}
+          platforms: ${{ inputs.BUILD_PLATFORMS }}
+          #          allow: network.host, security.insecure
           file: ${{ inputs.DOCKER_FILE }}
-          platforms: linux/amd64,linux/arm64/v8
           build-args: |
             BASE_IMAGE_NAME=${{ inputs.BASE_IMAGE_NAME }}
-            BASE_IMAGE_TAG=${{ inputs.BASE_IMAGE_TAG }}
+            BASE_IMAGE_VERSION=${{ inputs.BASE_IMAGE_VERSION }}
+            BUILD_IMAGE_NAME=${{inputs.DOCKER_REGISTRY}}/${{inputs.CREATE_IMAGE_NAME}}
             PHP_VERSION=${{ inputs.PHP_VERSION }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-#          cache-from: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }}
-#          cache-to: type=registry,ref=${{ inputs.CREATE_IMAGE_CACHE_NAME }}:buildcache-${{ env.CACHE_REF_NAME }},mode=max
+          # yamllint disable-line rule:line-length
+          cache-from: |
+            type=local,src=/tmp/buildkit/cache,ref=${{inputs.DOCKER_REGISTRY}}/buildcache/${{inputs.CREATE_IMAGE_NAME}}:buildcache
+            type=registry,ref=${{inputs.DOCKER_REGISTRY}}/buildcache/${{inputs.CREATE_IMAGE_NAME}}:buildcache
+          #  type=registry,ref=${{inputs.DOCKER_REGISTRY}}/buildcache/${{inputs.CREATE_IMAGE_NAME}}:buildcache-${{ github.event_name }}
+          # yamllint disable-line rule:line-length
+          cache-to: |
+            type=local,dest=/tmp/buildkit/cache,oci-mediatypes=true,image-manifest=true,compression=zstd,compression-level=3,force-compression=true,mode=max,ref=${{inputs.DOCKER_REGISTRY}}/buildcache/${{inputs.CREATE_IMAGE_NAME}}:buildcache
+            type=registry,oci-mediatypes=true,image-manifest=true,compression=zstd,compression-level=3,force-compression=true,mode=max,ref=${{inputs.DOCKER_REGISTRY}}/buildcache/${{inputs.CREATE_IMAGE_NAME}}:buildcache
+          #  type=registry,oci-mediatypes=true,image-manifest=true,compression=zstd,compression-level=3,force-compression=true,mode=max,ref=${{inputs.DOCKER_REGISTRY}}/buildcache/${{inputs.CREATE_IMAGE_NAME}}:buildcache-${{ github.event_name }}
+          ## GitHub cache is very small
+          #          cache-from: type=gha
+          #          cache-to: type=gha,mode=max,ignore-error=true

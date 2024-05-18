@@ -1,0 +1,17 @@
+---
+line_ending: lf
+extensions: ['yml', 'yaml']
+continue_on_error: true
+gitignore_excludes: false
+exclude:
+  - .git/
+  - vendor/
+  - storage/app/scribe/
+  - .scribe/
+  - node_modules/
+formatter:
+  type: basic
+  include_document_start: true
+  indent: 2
+  wrap_array_items: true
+  max_line_length: 120

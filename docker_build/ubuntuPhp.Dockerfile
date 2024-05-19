@@ -70,9 +70,18 @@ RUN apt-get update && \
       && \
     apt-get -y autoremove
 
+COPY --link ./files/php /root/php
 
-RUN LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php.gpg >/dev/null && \
+    cat /root/php/ondrej-php-old.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php-old.gpg >/dev/null && \
+    echo "deb https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
+    apt-get update
+
+#RUN gpg --keyserver keyserver.ubuntu.com --recv-key 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
+#    gpg --output /etc/apt/trusted.gpg.d/ondrej-php-new2.gpg --export 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
+#    deb [signed-by=/etc/apt/trusted.gpg.d/ondrej-php.gpg] https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
+
+RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \

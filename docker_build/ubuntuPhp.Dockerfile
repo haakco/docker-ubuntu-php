@@ -135,7 +135,7 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
       nodejs \
     && \
     apt-get -y autoremove && \
-    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest \
+    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest
 
 #RUN npx @puppeteer/browsers install --path /site/chrome chrome@stable && \
 #    npx @puppeteer/browsers install --path /site/chrome chromedriver

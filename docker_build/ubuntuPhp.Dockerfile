@@ -70,26 +70,6 @@ RUN apt-get update && \
       && \
     apt-get -y autoremove
 
-COPY --link ./files/php /root/php
-
-RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php.gpg >/dev/null && \
-    cat /root/php/ondrej-php-old.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php-old.gpg >/dev/null && \
-    echo "deb https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
-    apt-get update
-
-#RUN gpg --keyserver keyserver.ubuntu.com --recv-key 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
-#    gpg --output /etc/apt/trusted.gpg.d/ondrej-php-new2.gpg --export 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
-#    deb [signed-by=/etc/apt/trusted.gpg.d/ondrej-php.gpg] https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
-
-RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \
-      tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y autoremove
-
 RUN apt-get install -qy \
       bash-completion build-essential \
       bzip2 \
@@ -104,10 +84,9 @@ RUN apt-get install -qy \
       libssh2-1 libsodium-dev libuuid1 \
       logrotate \
       mysql-client \
-      net-tools nginx-extras nodejs \
+      net-tools nginx-extras \
       openssl openssh-server \
       pip procps psmisc \
-      postgresql-client \
       redis-tools \
       rsync \
       rsyslog rsyslog-kubernetes  \
@@ -136,16 +115,44 @@ RUN apt-get install -qy \
     && \
     update-ca-certificates --fresh && \
     GOBIN=/usr/local/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@latest && \
-    npm install -g svgo && \
     apt-get -y autoremove
+
+RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
+      postgresql-client \
+    && \
+    apt-get -y autoremove
+
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \
+      tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
+      nodejs \
+    && \
+    apt-get -y autoremove && \
+    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest \
 
 #RUN npx @puppeteer/browsers install --path /site/chrome chrome@stable && \
 #    npx @puppeteer/browsers install --path /site/chrome chromedriver
 
-# Install node for headless testing
-RUN npm install -g yarn@latest npm@latest npm-check-updates@latest
+#RUN gpg --keyserver keyserver.ubuntu.com --recv-key 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
+#    gpg --output /etc/apt/trusted.gpg.d/ondrej-php-new2.gpg --export 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
+#    deb [signed-by=/etc/apt/trusted.gpg.d/ondrej-php.gpg] https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
+#    apt-get update
 
-RUN apt-get -y install \
+COPY --link ./files/php /root/php
+
+RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php.gpg >/dev/null && \
+    cat /root/php/ondrej-php-old.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php-old.gpg >/dev/null && \
+    echo "deb https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
+    apt-get update && \
+    apt-get -qy dist-upgrade && \
+    apt-get -y install \
       libbrotli-dev libbrotli1 \
       libcurl4 libcurl4-openssl-dev \
       libicu[67]* libicu-* \

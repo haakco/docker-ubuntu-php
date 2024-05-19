@@ -261,10 +261,8 @@ RUN sed -Ei \
       /etc/php/${PHP_VERSION}/cli/php.ini \
       /etc/php/${PHP_VERSION}/fpm/php.ini
 
-RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache.ini
-; configuration for php opcache module
-; priority=10
-zend_extension=opcache.so
+RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini
+; Ability to disable jit if enabling debugging
 opcache.jit_buffer_size=${PHP_OPCACHE_JIT_BUFFER_SIZE}
 opcache.jit=${PHP_OPCACHE_JIT}
 FILE1

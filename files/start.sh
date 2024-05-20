@@ -173,7 +173,7 @@ MAILTO=""
 
 #rename on start
 @reboot find /site/web/.envDocker -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
-@reboot sleep 5 && find /site -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
+@reboot sleep 5 && find /site -path '*/.git' -prune -o -not -user web -execdir chown web: {} \+ > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 
 EndOfMessage
 

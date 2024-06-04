@@ -174,6 +174,7 @@ MAILTO=""
 #rename on start
 @reboot find /site/web/.envDocker -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 @reboot sleep 5 && find /site -path '*/.git' -prune -o -not -user web -execdir chown web: {} \+ > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
+#@reboot sleep 5 && find ${WEB_HOME_DIR} -not -path '*/\.git/*' -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 
 EndOfMessage
 
@@ -206,6 +207,12 @@ if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then
   fi
 fi
 
+cp /etc/environment "/etc/environment.$(date +%Y%m%d%m%n)"
+
+#cat <<EndOfMessage > /etc/environment
+#PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+#EndOfMessage
+
 # Try to fix rsyslogd: file '/dev/stdout': open error: Permission denied
 chmod -R a+w /dev/stdout
 chmod -R a+w /dev/stderr
@@ -234,3 +241,9 @@ sed -Ei \
 /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto &
 
 /usr/bin/supervisord -n -c /supervisord.conf
+
+while :
+  do
+    echo "Press [CTRL+C] to stop.."
+    sleep 10
+  done

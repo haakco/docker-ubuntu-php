@@ -31,10 +31,17 @@ ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
     BASE_IMAGE_VERSION="${BASE_IMAGE_VERSION}" \
     TARGETARCH="${TARGETARCH}" \
     TARGETOS="${TARGETOS}" \
-    PHP_VERSION="${PHP_VERSION}" \
     NODE_MAJOR="${NODE_MAJOR}" \
-    WEB_USER="${WEB_USER}" \
     DOCKERIZE_VERSION=${DOCKERIZE_VERSION}
+
+ENV PHP_VERSION="${PHP_VERSION}" \
+    WEB_HOME_DIR="/site/web" \
+    WEB_USER="${WEB_USER}" \
+    WEB_USER_ID="1000" \
+    WEB_GROUP_ID="1000" \
+    WEB_USER_HOME="/site" \
+    WEB_USER_SHELL="/bin/bash"
+
 
 ENV JOBS="16"
 
@@ -49,7 +56,9 @@ RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
     echo ""
 
 RUN apt-get update && \
-    apt-get install -qy \
+    apt-get -qy dist-upgrade
+
+RUN apt-get install -qy \
       software-properties-common \
       locales \
     && \
@@ -71,8 +80,7 @@ RUN apt-get update && \
     apt-get -y autoremove
 
 RUN apt-get install -qy \
-      bash-completion build-essential \
-      bzip2 \
+      bat bash-completion build-essential bzip2 \
       curl cron \
       dos2unix dnsutils dumb-init \
       expect \
@@ -186,8 +194,9 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     pecl install brotli && \
     echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
     pecl install excimer && \
-    echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
-    phpenmod -v "${PHP_VERSION}" excimer || \
+    echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini"
+
+RUN phpenmod -v "${PHP_VERSION}" excimer || \
     phpdismod -v "${PHP_VERSION}" xdebug  || \
     phpdismod -v "${PHP_VERSION}" pcov
 
@@ -232,7 +241,12 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_ERROR_LOG="${PHP_ERROR_LOG}" \
     PHP_ACCESS_LOG="${PHP_ACCESS_LOG}" \
     PHP_IDENT="${PHP_IDENT}" \
-    PHP_FPM_IDENT="${PHP_FPM_IDENT}"
+    PHP_FPM_IDENT="${PHP_FPM_IDENT}" \
+    \
+    PHP_INI_CLI_CONFIG_FILE="/etc/php/${PHP_VERSION}/cli/php.ini" \
+    PHP_INI_FPM_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/php.ini" \
+    PHP_FPM_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/php-fpm.conf" \
+    PHP_FPM_WWW_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/bin --filename=composer && \
@@ -240,8 +254,8 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     mkdir -p /usr/local/bin && \
     ln -sf /bin/composer /usr/local/bin/composer
 
-RUN cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini.bak && \
-    cp /etc/php/${PHP_VERSION}/fpm/php.ini /etc/php/${PHP_VERSION}/fpm/php.ini.bak
+RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}".bak && \
+    cp "${PHP_INI_FPM_CONFIG_FILEILE}" "${PHP_INI_FPM_CONFIG_FILEILE}".bak
 
 RUN sed -Ei \
       -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
@@ -275,8 +289,8 @@ RUN sed -Ei \
       -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
       -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
       -e "s/;opcache.max_wasted_percentage=.*/;opcache.max_wasted_percentage=10/" \
-      /etc/php/${PHP_VERSION}/cli/php.ini \
-      /etc/php/${PHP_VERSION}/fpm/php.ini
+      "${PHP_INI_CLI_CONFIG_FILE}" \
+      "${PHP_INI_FPM_CONFIG_FILEILE}"
 
 RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini
 ; Ability to disable jit if enabling debugging
@@ -288,7 +302,8 @@ RUN sed -Ei \
         -e "s/precision = .*/precision = -1/" \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
-        /etc/php/${PHP_VERSION}/fpm/php.ini
+      "${PHP_INI_CLI_CONFIG_FILE}" \
+      "${PHP_INI_FPM_CONFIG_FILEILE}"
 
 RUN sed -Ei \
         -e "s#error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
@@ -345,18 +360,24 @@ COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/zshrc/ "/site/"
 
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+RUN cargo install eza
+
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
     git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
+    sudo curl https://raw.githubusercontent.com/junegunn/fzf/master/shell/completion.zsh -o /usr/share/doc/fzf/examples/completion.zsh && \
+    sudo curl https://raw.githubusercontent.com/junegunn/fzf/master/shell/key-bindings.zsh -o /usr/share/doc/fzf/examples/key-bindings.zsh && \
     git clone --depth 1 https://github.com/chrissicool/zsh-256color "/root/.oh-my-zsh/custom/plugins/zsh-256color" && \
     git clone https://github.com/jessarcher/zsh-artisan.git ~/.oh-my-zsh/custom/plugins/artisan && \
     cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
     cat /root/bash_extra >> /root/.bashrc && \
     cat /root/bash_extra >> /site/.bashrc && \
-    echo "cd /site/web" >> /root/.bashrc && \
-    echo "cd /site/web" >> /root/.zshrc && \
+    chsh -s $(which zsh) root && \
+    chsh -s $(which zsh) "${WEB_USER}" && \
     find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
 
 COPY --link ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt

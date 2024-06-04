@@ -255,7 +255,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     ln -sf /bin/composer /usr/local/bin/composer
 
 RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}".bak && \
-    cp "${PHP_INI_FPM_CONFIG_FILEILE}" "${PHP_INI_FPM_CONFIG_FILEILE}".bak
+    cp "${PHP_INI_FPM_CONFIG_FILE}" "${PHP_INI_FPM_CONFIG_FILE}".bak
 
 RUN sed -Ei \
       -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
@@ -290,7 +290,7 @@ RUN sed -Ei \
       -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
       -e "s/;opcache.max_wasted_percentage=.*/;opcache.max_wasted_percentage=10/" \
       "${PHP_INI_CLI_CONFIG_FILE}" \
-      "${PHP_INI_FPM_CONFIG_FILEILE}"
+      "${PHP_INI_FPM_CONFIG_FILE}"
 
 RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini
 ; Ability to disable jit if enabling debugging
@@ -303,7 +303,7 @@ RUN sed -Ei \
         -e "s/expose_php.*/expose_php = Off/" \
         -e "s/display_startup_error.*/display_startup_error = Off/" \
       "${PHP_INI_CLI_CONFIG_FILE}" \
-      "${PHP_INI_FPM_CONFIG_FILEILE}"
+      "${PHP_INI_FPM_CONFIG_FILE}"
 
 RUN sed -Ei \
         -e "s#error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
@@ -360,9 +360,9 @@ COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/zshrc/ "/site/"
 
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-RUN cargo install eza
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    . "$HOME/.cargo/env" && \
+    cargo install eza
 
 RUN cd /root/ && \
     git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \

@@ -252,4 +252,4 @@ PATH="./node_modules/.bin:./vendor/bin/:$PATH"
 
 eval "$(starship init zsh)"
 
-cd "cd $HOME/web"
+cd "$HOME/web"

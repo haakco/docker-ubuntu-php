@@ -13,10 +13,10 @@ ARG TARGETOS
 ARG TZ="UTC"
 ARG WEB_USER="web"
 ARG DOCKERIZE_VERSION="v0.7.0"
-ARG PHP_ERROR_LOG="/proc/self/fd/2"
-ARG PHP_ACCESS_LOG="/proc/self/fd/2"
 ARG PHP_IDENT="php"
 ARG PHP_FPM_IDENT="php-fpm"
+ARG PHP_ERROR_LOG="/proc/self/fd/2"
+ARG PHP_ACCESS_LOG="/proc/self/fd/2"
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_ZA.UTF-8" \
@@ -239,10 +239,10 @@ ENV PHP_TIMEZONE="UTC" \
     FPM_MAX_SPARE_SERVERS=8 \
     FPM_MAX_REQUESTS=1000 \
     \
-    PHP_ERROR_LOG="${PHP_ERROR_LOG}" \
-    PHP_ACCESS_LOG="${PHP_ACCESS_LOG}" \
     PHP_IDENT="${PHP_IDENT}" \
     PHP_FPM_IDENT="${PHP_FPM_IDENT}" \
+    PHP_ERROR_LOG="${PHP_ERROR_LOG}" \
+    PHP_ACCESS_LOG="${PHP_ACCESS_LOG}" \
     \
     PHP_INI_CLI_CONFIG_FILE="/etc/php/${PHP_VERSION}/cli/php.ini" \
     PHP_INI_FPM_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/php.ini" \

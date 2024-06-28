@@ -1,8 +1,26 @@
 Host ssh.dev.azure.com
+  ControlMaster no
+  ControlPath none
   IdentityFile ~/.ssh/id_rsa
 
 Host vs-ssh.visualstudio.com
+  ControlMaster no
+  ControlPath none
   IdentityFile ~/.ssh/id_rsa
+
+Host bitbucket.org
+  ControlMaster no
+  ControlPath none
+  IdentityFile ~/.ssh/id_rsa
+
+Host *.bitbucket.org
+  ControlMaster no
+  ControlPath none
+  IdentityFile ~/.ssh/id_rsa
+
+Host *.compute.amazonaws.com
+  ControlMaster no
+  ControlPath none
 
 Host *
   IgnoreUnknown AddKeysToAgent,UseKeychain
@@ -25,6 +43,7 @@ Host *
   # Get rid of SSH connection delays
   GSSAPIAuthentication no
 
+  ConnectTimeout 150
   ServerAliveInterval 15
-  ServerAliveCountMax 4
+  ServerAliveCountMax 10
   ForwardAgent yes

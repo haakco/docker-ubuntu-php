@@ -47,3 +47,4 @@ Host *
   ServerAliveInterval 15
   ServerAliveCountMax 10
   ForwardAgent yes
+  #LogLevel DEBUG

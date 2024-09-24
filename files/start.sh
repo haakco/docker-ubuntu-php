@@ -55,6 +55,7 @@ export FPM_START_SERVERS=${FPM_START_SERVERS:-4}
 export FPM_MIN_SPARE_SERVERS=${FPM_MIN_SPARE_SERVERS:-4}
 export FPM_MAX_SPARE_SERVERS=${FPM_MAX_SPARE_SERVERS:-8}
 export FPM_MAX_REQUESTS=${FPM_MAX_REQUESTS:-1000}
+export NGINX_CLIENT_BODY_BUFFER_SIZE=${NGINX_CLIENT_BODY_BUFFER_SIZE:-""}
 
 cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini.bak.run
 cp /etc/php/${PHP_VERSION}/fpm/php.ini /etc/php/${PHP_VERSION}/fpm/php.ini.bak.run
@@ -232,11 +233,20 @@ fi
 
 sed -Ei \
   -e "s/NGINX_SITES/${NGINX_SITES}/" \
-  /site/nginx/config/sites.conf
-
-sed -Ei \
   -e "s/LARAVEL_WEBSOCKETS_PORT/${LARAVEL_WEBSOCKETS_PORT}/" \
   /site/nginx/config/sites.conf
+
+if [[ -n "${NGINX_CLIENT_BODY_BUFFER_SIZE}" ]]; then
+  sed -Ei -e "s/client_body_buffer_size 1m/client_body_buffer_size ${NGINX_CLIENT_BODY_BUFFER_SIZE}/" /site/nginx/config/nginx.conf
+fi
+
+if [[ -n "${NGINX_CLIENT_BODY_BUFFER_SIZE}" ]]; then
+  sed -Ei -e "s/client_body_buffer_size .+/client_body_buffer_size ${NGINX_CLIENT_BODY_BUFFER_SIZE};/" /site/nginx/config/nginx.conf
+fi
+
+if [[ -n "${NGINX_CLIENT_MAX_BODY_SIZE}" ]]; then
+  sed -Ei -e "s/client_max_body_size .+/client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};/" /site/nginx/config/nginx.conf
+fi
 
 ## Rotate logs at start just in case
 /usr/sbin/logrotate -vf /etc/logrotate.d/*.auto &

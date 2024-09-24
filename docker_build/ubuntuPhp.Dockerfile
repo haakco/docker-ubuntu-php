@@ -123,8 +123,9 @@ RUN apt-get install -qy \
     \
     && \
     update-ca-certificates --fresh && \
-    GOBIN=/usr/local/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@latest && \
     apt-get -y autoremove
+
+RUN GOBIN=/usr/local/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@latest
 
 RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \

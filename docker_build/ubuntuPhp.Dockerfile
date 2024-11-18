@@ -4,6 +4,12 @@ ARG BASE_IMAGE_VERSION=""
 
 FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_VERSION}
 
+LABEL org.opencontainers.image.authors="timh@haak.co"
+LABEL org.opencontainers.image.source="https://github.com/haakco/docker-ubuntu-php"
+LABEL org.opencontainers.image.title="docker-ubuntu-php-laravel"
+LABEL org.opencontainers.image.description="Base image for laravel projects"
+LABEL org.opencontainers.image.vendor="HaakCo"
+
 ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_VERSION=""
 ARG PHP_VERSION=''

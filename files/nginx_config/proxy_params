@@ -1,10 +1,12 @@
 ### Set headers ####
+proxy_hide_header   X-Powered-By;
 proxy_set_header    Accept-Encoding         "";
 proxy_set_header    X-Real-IP               $remote_addr;
 # proxy_set_header  Forwarded               $proxy_add_forwarded;
 proxy_set_header    X-Forwarded-For         $proxy_add_x_forwarded_for;
 proxy_set_header    X-Forwarded-By          $server_addr:$server_port;
 proxy_set_header    X-Forwarded-Proto       $scheme;
+proxy_set_header    X-Forwarded-Scheme      $scheme;
 proxy_set_header    Cookie                  $http_cookie;
 proxy_set_header    Referer                 $http_referer;
 proxy_set_header    Host                    $host;
@@ -21,4 +23,3 @@ set_real_ip_from 0.0.0.0/0;
 real_ip_recursive on;
 
 add_header X-Cache-Status $upstream_cache_status;
-

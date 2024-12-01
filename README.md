@@ -6,4 +6,4 @@ Can build images for different php versions via setting ARG PHP_VERSION.
 
 Completed builds can be found at
 
-  * https://ghcr.io/haakco/ubuntu2204-php83
+  * https://ghcr.io/haakco/ubuntu2404-php83

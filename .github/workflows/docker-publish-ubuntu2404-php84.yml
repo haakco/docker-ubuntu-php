@@ -1,5 +1,5 @@
 ---
-name: Publish ghcr.io/haakco/ubuntu2404-php83 Docker image
+name: Publish ghcr.io/haakco/ubuntu2404-php84 Docker image
 # yamllint disable-line rule:truthy
 on:
   push:

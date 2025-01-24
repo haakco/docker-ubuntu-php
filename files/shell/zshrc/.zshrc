@@ -185,16 +185,16 @@ plugins=(
   aliases alias-finder artisan \
   colored-man-pages colorize command-not-found common-aliases compleat composer cp \
   debian docker docker-compose \
-  fancy-ctrl-z fd fzf fzf-tab \
+  fancy-ctrl-z fzf fzf-tab \
   git git-lfs gitignore golang gpg-agent \
   history history-substring-search \
   laravel \
   man \
   node node npm \
   pip pipenv postgres python \
-  redis-cli ripgrep rsync rust \
+  redis-cli rsync rust \
   screen ssh-agent starship sudo supervisor systemd \
-  thefuck tmux tmuxinator \
+  tmux tmuxinator \
   ubuntu \
   zsh-256color zsh-autosuggestions zsh-syntax-highlighting zsh-interactive-cd zsh-navigation-tools \
 )

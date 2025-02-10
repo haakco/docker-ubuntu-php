@@ -34,7 +34,6 @@ on:
       PHP_VERSION:
         required: false
         type: string
-        default: "8.3"
 jobs:
   docker_build_and_push:
     name: Build and push base image

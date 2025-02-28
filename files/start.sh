@@ -13,6 +13,7 @@ export ENABLE_HORIZON=${ENABLE_HORIZON:-"FALSE"}
 export ENABLE_PULSE_CHECK=${ENABLE_PULSE_CHECK:-"FALSE"}
 export ENABLE_PULSE_WORK=${ENABLE_PULSE_WORK:-"FALSE"}
 export ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-"FALSE"}
+export REVERB_SCALING_ENABLED=${REVERB_SCALING_ENABLED:-"FALSE"}
 export LARAVEL_WEBSOCKETS_PORT=${LARAVEL_WEBSOCKETS_PORT:-"2096"}
 export ENABLE_SIMPLE_QUEUE=${ENABLE_SIMPLE_QUEUE:-"FALSE"}
 export SIMPLE_WORKER_NUM=${SIMPLE_WORKER_NUM:-"5"}
@@ -136,6 +137,12 @@ if [[ "${ENABLE_WEBSOCKET}" = "TRUE" ]]; then
   sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET$/numprocs=1/' /supervisord.conf
 else
   sed -E -i -e 's/^numprocs=ENABLE_WEBSOCKET$/numprocs=0/' /supervisord.conf
+fi
+
+if [[ "${ENABLE_REVERB_WEBSOCKET}" = "TRUE" ]]; then
+  sed -E -i -e 's/^numprocs=ENABLE_REVERB_WEBSOCKET/numprocs=1/' /supervisord.conf
+else
+  sed -E -i -e 's/^numprocs=ENABLE_REVERB_WEBSOCKET/numprocs=0/' /supervisord.conf
 fi
 
 sed -E -i -e "s#LARAVEL_WEBSOCKETS_PORT#${LARAVEL_WEBSOCKETS_PORT}#" /supervisord.conf

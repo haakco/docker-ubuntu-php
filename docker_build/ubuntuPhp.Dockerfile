@@ -186,7 +186,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
       php${PHP_VERSION}-ldap \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
       php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql \
-      php${PHP_VERSION}-raphf php${PHP_VERSION}-readline php${PHP_VERSION}-redis \
+      php${PHP_VERSION}-raphf php${PHP_VERSION}-readline php${PHP_VERSION}-redis php${PHP_VERSION}-rdkafka \
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 \
       php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml php${PHP_VERSION}-xsl \
       php${PHP_VERSION}-zip php${PHP_VERSION}-zstd \

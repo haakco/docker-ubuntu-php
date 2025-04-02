@@ -60,7 +60,6 @@ RUN apt-get update && \
     locale-gen && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
-    apt-get purge -y --auto-remove software-properties-common && \
     rm -rf /var/lib/apt/lists/*
 
 # --- Install Build Dependencies and Common Utilities ---
@@ -84,7 +83,7 @@ RUN apt-get update && \
       libavcodec-extra libavformat-extra libavfilter-extra \
       gifsicle jpegoptim libavif-bin optipng pngquant webp \
       # PHP extension build deps
-      libbrotli-dev libcurl4-openssl-dev libicu-dev libidn12-dev libidn2-dev \
+      libbrotli-dev libcurl4-openssl-dev libicu-dev libidn*-dev \
       libmcrypt-dev libsodium-dev libssh2-1-dev libzstd-dev libxml2-dev libssl-dev \
       libgmp-dev libldap2-dev libpq-dev libsqlite3-dev libbz2-dev libreadline-dev \
       libxslt1-dev libzip-dev librdkafka-dev \

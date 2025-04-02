@@ -234,7 +234,7 @@ RUN apt-get update && \
       # Minimal Utils needed for runtime
       bash-completion bzip2 curl cron dos2unix dnsutils dumb-init expect ftp fzf \
       gawk git git-extras git-core git-lfs gnupg2 \
-      jq logrotate mysql-client net-tools openssl openssh-server \
+      jq logrotate lsb-release mysql-client net-tools openssl openssh-server \
       procps psmisc redis-tools rsync rsyslog supervisor \
       tar telnet tree unzip uuid-runtime vim wget whois xz-utils \
       zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \

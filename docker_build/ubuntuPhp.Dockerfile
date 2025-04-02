@@ -123,9 +123,11 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
       libbrotli1 libcurl4 libicu[67]* libidn1* libidn2-0 libmcrypt4 libzstd1 libsodium23 \
       # PHP packages including -dev for PECL
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
+      php${PHP_VERSION}-brotli \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-dev \
+      php${PHP_VERSION}-excimer \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-http \
       php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
@@ -141,11 +143,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
       pear-channels \
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
-    # Install PECL extensions
-    pecl install brotli && \
-    echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
-    pecl install excimer && \
-    echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
+    # PECL extensions are now installed via apt packages (phpX.Y-brotli, phpX.Y-excimer)
     # Cleanup build dependencies for PHP extensions if possible (some might be needed by runtime libs)
     # apt-get purge -y --auto-remove php${PHP_VERSION}-dev ... other -dev packages ... && \
     rm -rf /var/lib/apt/lists/* && rm -rf /tmp/pear
@@ -283,8 +281,10 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     apt-get update && \
     apt-get install -qy --no-install-recommends \
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
+      php${PHP_VERSION}-brotli \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
+      php${PHP_VERSION}-excimer \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-http \
       php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
@@ -302,12 +302,9 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
     echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
     rm -rf /var/lib/apt/lists/*
-
+ 
 # --- Copy Build Artifacts ---
-COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/brotli.so /usr/lib/php/${PHP_VERSION}/modules/
-COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/excimer.so /usr/lib/php/${PHP_VERSION}/modules/
-COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /etc/php/${PHP_VERSION}/mods-available/
-COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /etc/php/${PHP_VERSION}/mods-available/
+# PECL extensions (brotli, excimer) are installed via apt, no need to copy .so/.ini files
 COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/
 COPY --from=builder /root/.cargo/bin/eza /usr/local/bin/
 COPY --from=builder /usr/local/bin/composer /usr/local/bin/
@@ -316,10 +313,11 @@ COPY --from=builder /usr/local/bin/starship /usr/local/bin/
 COPY --from=builder /root/.oh-my-zsh /root/.oh-my-zsh
 # Copy oh-my-zsh for web user too if needed
 # COPY --from=builder /root/.oh-my-zsh /site/.oh-my-zsh
-
+ 
 # --- Enable Copied PECL Extensions ---
-RUN phpenmod -v "${PHP_VERSION}" brotli excimer
-
+# APT packages handle enabling the extensions
+# RUN phpenmod -v "${PHP_VERSION}" brotli excimer
+ 
 # --- Configure PHP ---
 ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="256M" \

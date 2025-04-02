@@ -1,0 +1,143 @@
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+env/
+composer.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.*\.lock$
+
+# Build outputs
+dist/
+.*\.pyc$
+__pycache__/
+.pytest_cache/
+coverage/
+.coverage
+
+# Environment and local config
+.env
+.env.local
+.env\..*
+.*\.local$
+.DS_Store
+Thumbs.db
+
+# Large binary files
+.*\.zip$
+.*\.tar\.gz$
+.*\.rar$
+.*\.7z$
+.*\.pdf$
+
+# Image files
+.*\.3g2$
+.*\.3gp$
+.*\.aac$
+.*\.ai$
+.*\.aif$
+.*\.aiff$
+.*\.avi$
+.*\.avif$
+.*\.bmp$
+.*\.eps$
+.*\.flac$
+.*\.flv$
+.*\.gif$
+.*\.ico$
+.*\.indd$
+.*\.jpeg$
+.*\.jpg$
+.*\.m4a$
+.*\.m4p$
+.*\.m4v$
+.*\.mkv$
+.*\.mov$
+.*\.mp3$
+.*\.mp4$
+.*\.oga$
+.*\.ogg$
+.*\.opus$
+.*\.pdf$
+.*\.png$
+.*\.psd$
+.*\.raw$
+.*\.srt$
+.*\.svg$
+.*\.svgz$
+.*\.tiff$
+.*\.vtt$
+.*\.wav$
+.*\.weba$
+.*\.webm$
+.*\.webp$
+.*\.wma$
+.*\.wmv$
+
+# IDE specific
+.idea/
+.vscode/
+.*\.swp$
+.*\.swo$
+.vs/
+
+# Logs
+logs/
+.*\.log$
+npm-debug\.log.*
+yarn-debug\.log.*
+yarn-error\.log.*
+
+# Generated files
+.*\.min\.js$
+.*\.min\.css$
+.*\.map$
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.*\.tmp$
+
+# Database files
+.*\.sqlite$
+.*\.db$
+.*\.sql$
+
+# Security related
+.*\.pem$
+.*\.key$
+.*\.cert$
+.*\.crt$
+
+# Terraform
+.*\.lock\.hcl$
+.gitkeep
+docs/generated
+.aider*
+!.aider.conf.yml
+!.aiderignore
+.terraform/*
+.*\.tfstate\.backup$
+.*\.eslintcache$
+
+# Test files
+.*test\.ts$
+.*\.test\.ts$
+test-event\.ts$
+mock-aws\.ts$
+*.default.yaml
+.terraform.lock.hcl
+*.docx
+*.pptx
+*.bkp
+*.png
+
+# Markdown files (except aider.CONVENTIONS.md)
+adocs/.*\.md$
+!adocs/aider.CONVENTIONS.md
+
+artisan

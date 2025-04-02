@@ -1,24 +1,24 @@
-# syntax=docker/dockerfile:1
-ARG BASE_IMAGE_NAME=""
-ARG BASE_IMAGE_VERSION=""
-
-FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_VERSION}
-
-LABEL org.opencontainers.image.authors="timh@haak.co"
-LABEL org.opencontainers.image.source="https://github.com/haakco/docker-ubuntu-php"
-LABEL org.opencontainers.image.title="docker-ubuntu-php-laravel"
-LABEL org.opencontainers.image.description="Base image for laravel projects"
-LABEL org.opencontainers.image.vendor="HaakCo"
-
+# syntax=docker/dockerfile:1.4
 ARG BASE_IMAGE_NAME=""
 ARG BASE_IMAGE_VERSION=""
 ARG PHP_VERSION=''
 ARG NODE_MAJOR='20'
-ARG TARGETARCH
-ARG TARGETOS
 ARG TZ="UTC"
 ARG WEB_USER="web"
 ARG DOCKERIZE_VERSION="v0.7.0"
+
+# ==================================================================
+# Builder Stage: Install build tools, dev packages, compile assets
+# ==================================================================
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_VERSION} AS builder
+
+ARG PHP_VERSION
+ARG NODE_MAJOR
+ARG TARGETARCH
+ARG TARGETOS
+ARG TZ
+ARG WEB_USER
+ARG DOCKERIZE_VERSION
 ARG PHP_IDENT="php"
 ARG PHP_FPM_IDENT="php-fpm"
 ARG PHP_ERROR_LOG="/proc/self/fd/2"
@@ -33,149 +33,96 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     TZ="${TZ}" \
     TIMEZONE="${TZ}"
 
-ENV BASE_IMAGE_NAME="${BASE_IMAGE_NAME}" \
-    BASE_IMAGE_VERSION="${BASE_IMAGE_VERSION}" \
+ENV PHP_VERSION="${PHP_VERSION}" \
+    NODE_MAJOR="${NODE_MAJOR}" \
     TARGETARCH="${TARGETARCH}" \
     TARGETOS="${TARGETOS}" \
-    NODE_MAJOR="${NODE_MAJOR}" \
     DOCKERIZE_VERSION=${DOCKERIZE_VERSION}
 
-ENV PHP_VERSION="${PHP_VERSION}" \
-    WEB_HOME_DIR="/site/web" \
-    WEB_USER="${WEB_USER}" \
-    WEB_USER_ID="1000" \
-    WEB_GROUP_ID="1000" \
-    WEB_USER_HOME="/site" \
-    WEB_USER_SHELL="/bin/bash"
-
-
 ENV JOBS="16"
-
 ENV MAKEFLAGS="-j ${JOBS} --load-average=${JOBS}"
+ENV COMPOSER_PROCESS_TIMEOUT=2000 \
+    COMPOSER_ALLOW_SUPERUSER=1
 
-RUN  [ -z "$PHP_VERSION" ] && echo "PHP_VERSION is required" && exit 1 || true
-
-RUN echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" && \
-    echo "BASE_IMAGE_VERSION=${BASE_IMAGE_VERSION}" && \
-    echo "NODE_MAJOR=${NODE_MAJOR}" && \
-    echo "PHP_VERSION=${PHP_VERSION}" && \
-    echo ""
-
+# --- Basic Setup & Locales ---
 RUN apt-get update && \
-    apt-get -qy dist-upgrade
-
-RUN apt-get install -qy \
+    apt-get install -qy --no-install-recommends \
       software-properties-common \
       locales \
+      ca-certificates \
+      curl \
+      gnupg \
+      tzdata \
     && \
-    apt-get -qy dist-upgrade && \
     echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
     locale-gen && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
-    apt-get install -qy \
-      apt-transport-https \
-      ca-certificates \
-      curl \
-      gnupg \
-      software-properties-common sudo \
-      tzdata \
-      && \
-    apt-get -y autoremove
+    apt-get purge -y --auto-remove software-properties-common && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -qy \
-      bat bash-completion build-essential bzip2 \
-      curl cron \
-      dos2unix dnsutils dumb-init \
-      expect \
-      ftp fzf \
-      gawk git git-extras git-core git-lfs golang gnupg2 \
-      ghostscript ghostscript-x gsfonts-other \
-      imagemagick imagemagick-common inetutils-ping inetutils-tools \
-      jq \
-      libssh2-1 libsodium-dev libuuid1 \
-      logrotate \
-      mysql-client \
-      net-tools nginx-extras \
-      openssl openssh-server \
-      pip procps psmisc \
-      redis-tools \
-      rsync \
-      rsyslog rsyslog-kubernetes  \
-      rsyslog-openssl rsyslog-relp rsyslog-snmp rsyslog-gnutls \
-      supervisor \
-      tar telnet thefuck tmux tmuxinator traceroute tree \
-      unzip \
-      uuid-dev \
-      vim \
-      wget whois \
-      xz-utils \
-      yamllint \
-      zlib1g-dev \
+# --- Install Build Dependencies and Common Utilities ---
+# Includes build-essential, git, dev libraries for PHP extensions, go, rust etc.
+RUN apt-get update && \
+    apt-get install -qy --no-install-recommends \
+      # Build tools
+      build-essential \
+      pkg-config \
+      # Common Utils needed for build or runtime
+      bash-completion bzip2 curl cron dos2unix dnsutils dumb-init expect ftp fzf \
+      gawk git git-extras git-core git-lfs gnupg2 \
+      jq logrotate mysql-client net-tools openssl openssh-server \
+      procps psmisc redis-tools rsync rsyslog supervisor \
+      tar telnet tree unzip uuid-dev vim wget whois xz-utils \
       zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
-    \
-    ffmpeg \
-    libavcodec-extra libavformat-extra libavfilter-extra \
-    \
-    gifsicle \
-    jpegoptim \
-    libavif-bin \
-    optipng \
-    pngquant \
-    gifsicle \
-    webp \
-    \
+      # Image/Video processing build deps (runtime libs installed later if needed)
+      ghostscript ghostscript-x gsfonts-other \
+      imagemagick imagemagick-common \
+      ffmpeg \
+      libavcodec-extra libavformat-extra libavfilter-extra \
+      gifsicle jpegoptim libavif-bin optipng pngquant webp \
+      # PHP extension build deps
+      libbrotli-dev libcurl4-openssl-dev libicu-dev libidn12-dev libidn2-dev \
+      libmcrypt-dev libsodium-dev libssh2-1-dev libzstd-dev libxml2-dev libssl-dev \
+      libgmp-dev libldap2-dev libpq-dev libsqlite3-dev libbz2-dev libreadline-dev \
+      libxslt1-dev libzip-dev librdkafka-dev \
+      # Go & Rust
+      golang \
     && \
     update-ca-certificates --fresh && \
-    apt-get -y autoremove
+    rm -rf /var/lib/apt/lists/*
 
+# --- Install Go Binaries ---
 RUN GOBIN=/usr/local/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@latest
 
-RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
-    apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-      postgresql-client \
-    && \
-    apt-get -y autoremove
+# --- Install Rust & Binaries ---
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    . "$HOME/.cargo/env" && \
+    cargo install eza
 
+# --- Install Node.js & Global Packages ---
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \
       tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
+    apt-get install -qy --no-install-recommends \
       nodejs \
     && \
-    apt-get -y autoremove && \
-    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest
+    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest && \
+    rm -rf /var/lib/apt/lists/*
 
-#RUN npx @puppeteer/browsers install --path /site/chrome chrome@stable && \
-#    npx @puppeteer/browsers install --path /site/chrome chromedriver
-
-#RUN gpg --keyserver keyserver.ubuntu.com --recv-key 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
-#    gpg --output /etc/apt/trusted.gpg.d/ondrej-php-new2.gpg --export 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C && \
-#    deb [signed-by=/etc/apt/trusted.gpg.d/ondrej-php.gpg] https://ppa.launchpad.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
-#    apt-get update
-
+# --- Install PHP + Dev packages + PECL extensions ---
 COPY --link ./files/php /root/php
-
 RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php.gpg >/dev/null && \
     cat /root/php/ondrej-php-old.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php-old.gpg >/dev/null && \
     echo "deb https://ppa.launchpadcontent.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
     apt-get update && \
-    apt-get -qy dist-upgrade && \
-    apt-get -y install \
-      libbrotli-dev libbrotli1 \
-      libcurl4 libcurl4-openssl-dev \
-      libicu[67]* libicu-* \
-      libidn1* libidn1*-dev \
-      libidn2-0 libidn2-dev \
-      libmcrypt4 libmcrypt-dev \
-      libzstd1 libzstd-dev \
+    apt-get install -qy --no-install-recommends \
+      # Runtime libs needed by PHP extensions
+      libbrotli1 libcurl4 libicu[67]* libidn1* libidn2-0 libmcrypt4 libzstd1 libsodium23 \
+      # PHP packages including -dev for PECL
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
@@ -191,33 +138,190 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
       php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 \
       php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml php${PHP_VERSION}-xsl \
       php${PHP_VERSION}-zip php${PHP_VERSION}-zstd \
-    && \
-    update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
-    apt-get install -y \
       php-pear \
       pear-channels \
-      && \
-    apt-get -y autoremove && \
-    echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
+    && \
+    update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
+    # Install PECL extensions
     pecl install brotli && \
     echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
     pecl install excimer && \
-    echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini"
+    echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
+    # Cleanup build dependencies for PHP extensions if possible (some might be needed by runtime libs)
+    # apt-get purge -y --auto-remove php${PHP_VERSION}-dev ... other -dev packages ... && \
+    rm -rf /var/lib/apt/lists/* && rm -rf /tmp/pear
 
-RUN phpenmod -v "${PHP_VERSION}" excimer || \
-    phpdismod -v "${PHP_VERSION}" xdebug  || \
-    phpdismod -v "${PHP_VERSION}" pcov
+# --- Install Composer ---
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
+    php -r "unlink('composer-setup.php');"
 
-#RUN test "${PHP_VERSION}" != "8.2" &&  \
-#    apt-get update && \
-#    apt-get -qy dist-upgrade && \
-#    \
-#    apt-get -y install \
-#      php${PHP_VERSION}-mcrypt \
-#     && \
-#    apt-get -y autoremove || true
+# --- Install Dockerize ---
+RUN wget -O - "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-${TARGETOS}-${TARGETARCH}-${DOCKERIZE_VERSION}.tar.gz" | tar xzf - -C /usr/local/bin
 
+# --- Install Starship ---
+RUN curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir /usr/local/bin
 
+# --- Install Oh-My-Zsh (for potential copy later) ---
+RUN git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
+    git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
+    git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
+    git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
+    git clone --depth 1 https://github.com/chrissicool/zsh-256color "/root/.oh-my-zsh/custom/plugins/zsh-256color" && \
+    git clone https://github.com/jessarcher/zsh-artisan.git /root/.oh-my-zsh/custom/plugins/artisan
+
+# ==================================================================
+# Final Stage: Install only runtime dependencies, copy artifacts
+# ==================================================================
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_VERSION}
+
+ARG PHP_VERSION
+ARG NODE_MAJOR
+ARG TZ
+ARG WEB_USER
+ARG PHP_IDENT="php"
+ARG PHP_FPM_IDENT="php-fpm"
+ARG PHP_ERROR_LOG="/proc/self/fd/2"
+ARG PHP_ACCESS_LOG="/proc/self/fd/2"
+
+ENV DEBIAN_FRONTEND="noninteractive" \
+    LANG="en_ZA.UTF-8" \
+    LANGUAGE="en_ZA.UTF-8" \
+    LC_ALL="en_ZA.UTF-8" \
+    LC_MEASUREMENT="en_ZA.UTF-8" \
+    TERM="xterm-256color" \
+    TZ="${TZ}" \
+    TIMEZONE="${TZ}"
+
+ENV PHP_VERSION="${PHP_VERSION}" \
+    WEB_HOME_DIR="/site/web" \
+    WEB_USER="${WEB_USER}" \
+    WEB_USER_ID="1000" \
+    WEB_GROUP_ID="1000" \
+    WEB_USER_HOME="/site" \
+    WEB_USER_SHELL="/bin/bash"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    PIP_DEFAULT_TIMEOUT=600 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    COMPOSER_PROCESS_TIMEOUT=2000 \
+    COMPOSER_ALLOW_SUPERUSER=1
+
+# --- Basic Setup & Locales ---
+RUN apt-get update && \
+    apt-get install -qy --no-install-recommends \
+      software-properties-common \
+      locales \
+      ca-certificates \
+      curl \
+      gnupg \
+      tzdata \
+    && \
+    echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen && \
+    echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
+    echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
+    locale-gen && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    apt-get purge -y --auto-remove software-properties-common && \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Install Runtime Dependencies ---
+RUN apt-get update && \
+    apt-get install -qy --no-install-recommends \
+      # Minimal Utils needed for runtime
+      bash-completion bzip2 curl cron dos2unix dnsutils dumb-init expect ftp fzf \
+      gawk git git-extras git-core git-lfs gnupg2 \
+      jq logrotate mysql-client net-tools openssl openssh-server \
+      procps psmisc redis-tools rsync rsyslog supervisor \
+      tar telnet tree unzip uuid-runtime vim wget whois xz-utils \
+      zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
+      # Image/Video processing runtime libs (if needed by PHP extensions or app)
+      ghostscript ghostscript-x gsfonts-other \
+      imagemagick imagemagick-common \
+      ffmpeg \
+      libavcodec-extra libavformat-extra libavfilter-extra \
+      gifsicle jpegoptim libavif-bin optipng pngquant webp \
+      # PHP extension runtime libs
+      libbrotli1 libcurl4 libicu[67]* libidn1* libidn2-0 libmcrypt4 libsodium23 libssh2-1 \
+      libxml2 libssl3 libgmp10 libldap2 libpq5 libsqlite3-0 libbz2-1.0 libreadline8 \
+      libxslt1.1 libzip4 librdkafka1 libzstd1 \
+      # Nginx
+      nginx-extras \
+    && \
+    update-ca-certificates --fresh && \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Install Node.js Runtime ---
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | \
+      tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install -qy --no-install-recommends \
+      nodejs \
+    && \
+    # Install global npm packages IF needed at runtime
+    # npm install -g yarn@latest ... \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Install PostgreSQL Client ---
+RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null && \
+    apt-get update && \
+    apt-get install -qy --no-install-recommends \
+      postgresql-client \
+    && \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Install PHP Runtime Packages ---
+COPY --link ./files/php /root/php
+RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php.gpg >/dev/null && \
+    cat /root/php/ondrej-php-old.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/ondrej-php-old.gpg >/dev/null && \
+    echo "deb https://ppa.launchpadcontent.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
+    apt-get update && \
+    apt-get install -qy --no-install-recommends \
+      php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
+      php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
+      php${PHP_VERSION}-common php${PHP_VERSION}-curl \
+      php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
+      php${PHP_VERSION}-http \
+      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
+      php${PHP_VERSION}-ldap \
+      php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
+      php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql \
+      php${PHP_VERSION}-opentelemetry \
+      php${PHP_VERSION}-raphf php${PHP_VERSION}-readline php${PHP_VERSION}-redis php${PHP_VERSION}-rdkafka \
+      php${PHP_VERSION}-soap php${PHP_VERSION}-sqlite3 php${PHP_VERSION}-ssh2 \
+      php${PHP_VERSION}-xdebug php${PHP_VERSION}-xml php${PHP_VERSION}-xsl \
+      php${PHP_VERSION}-zip php${PHP_VERSION}-zstd \
+      # php-pear needed? Only if app uses PEAR libs at runtime
+      # php-pear pear-channels \
+    && \
+    update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
+    echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Copy Build Artifacts ---
+COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/brotli.so /usr/lib/php/${PHP_VERSION}/modules/
+COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/excimer.so /usr/lib/php/${PHP_VERSION}/modules/
+COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /etc/php/${PHP_VERSION}/mods-available/
+COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /etc/php/${PHP_VERSION}/mods-available/
+COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/
+COPY --from=builder /root/.cargo/bin/eza /usr/local/bin/
+COPY --from=builder /usr/local/bin/composer /usr/local/bin/
+COPY --from=builder /usr/local/bin/dockerize /usr/local/bin/
+COPY --from=builder /usr/local/bin/starship /usr/local/bin/
+COPY --from=builder /root/.oh-my-zsh /root/.oh-my-zsh
+# Copy oh-my-zsh for web user too if needed
+# COPY --from=builder /root/.oh-my-zsh /site/.oh-my-zsh
+
+# --- Enable Copied PECL Extensions ---
+RUN phpenmod -v "${PHP_VERSION}" brotli excimer
+
+# --- Configure PHP ---
 ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="256M" \
     PHP_POST_MAX_SIZE="256M" \
@@ -236,8 +340,6 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_OPCACHE_ENABLE_FILE_OVERRIDE="0" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPCACHE_REVALIDATE_FREQ="1" \
-    COMPOSER_PROCESS_TIMEOUT=2000 \
-    COMPOSER_ALLOW_SUPERUSER=1 \
     \
     FPM_TIMEOUT=600 \
     FPM_LISTEN_BACKLOG=1024 \
@@ -256,12 +358,6 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_INI_FPM_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/php.ini" \
     PHP_FPM_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/php-fpm.conf" \
     PHP_FPM_WWW_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
-
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php composer-setup.php --install-dir=/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');" && \
-    mkdir -p /usr/local/bin && \
-    ln -sf /bin/composer /usr/local/bin/composer
 
 RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}".bak && \
     cp "${PHP_INI_FPM_CONFIG_FILE}" "${PHP_INI_FPM_CONFIG_FILE}".bak
@@ -283,7 +379,6 @@ RUN sed -Ei \
       -e "s/precision.*/precision = ${PHP_PRECISION}/" \
       -e "s#^(;|)error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
       -e "s#^(;|)syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
-    \
       -e "s/;opcache.enable_cli=.*/opcache.enable_cli=1/" \
       -e "s/;opcache.enable=.*/opcache.enable=1/" \
       -e "s/;opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
@@ -348,119 +443,77 @@ RUN cat <<-EOF >> "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
   php_admin_value[error_log] = ${PHP_ERROR_LOG}
 EOF
 
-RUN wget -O - "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-${TARGETOS}-${TARGETARCH}-${DOCKERIZE_VERSION}.tar.gz" | tar xzf - -C /usr/local/bin
-
-
-## Why add a user in the first place? :(
+# --- Setup User and Permissions ---
 RUN deluser --remove-home ubuntu || true
-
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
     usermod -a -G tty "${WEB_USER}" && \
     mkdir -p /site/web && \
     mkdir -p /site/logs/php && \
-    find /site -not -user web -execdir chown "${WEB_USER}:" {} \+
+    mkdir -p /site/tmp && \
+    mkdir -p /run/php && \
+    chown -R "${WEB_USER}:${WEB_USER}" /site /run/php
 
+# --- Copy Shell Configs ---
 COPY --link ./files/shell/starship/ "/root/.config/"
 COPY --link ./files/shell/zshrc/ "/root/"
 COPY --link ./files/shell/bash/ "/root/"
+COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0500 ./files/shell/starship/ "/site/.config/"
+COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0500 ./files/shell/zshrc/ "/site/"
+# If oh-my-zsh was copied for web user:
+# COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0500 ./files/shell/zshrc/.zshrc "/site/"
 
-COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/starship/ "/site/.config/"
-COPY --link --chown="${WEB_USER}:" --chmod=0500 ./files/shell/zshrc/ "/site/"
-
-RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-    . "$HOME/.cargo/env" && \
-    cargo install eza
-
-RUN cd /root/ && \
-    git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git /root/.oh-my-zsh && \
-    git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
-    git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
-    git clone --depth 1 https://github.com/Aloxaf/fzf-tab /root/.oh-my-zsh/custom/plugins/fzf-tab && \
-    sudo curl https://raw.githubusercontent.com/junegunn/fzf/master/shell/completion.zsh -o /usr/share/doc/fzf/examples/completion.zsh && \
-    sudo curl https://raw.githubusercontent.com/junegunn/fzf/master/shell/key-bindings.zsh -o /usr/share/doc/fzf/examples/key-bindings.zsh && \
-    git clone --depth 1 https://github.com/chrissicool/zsh-256color "/root/.oh-my-zsh/custom/plugins/zsh-256color" && \
-    git clone https://github.com/jessarcher/zsh-artisan.git ~/.oh-my-zsh/custom/plugins/artisan && \
-    cp -rf /root/.oh-my-zsh /root/.zshrc /site/ && \
-    cat /root/bash_extra >> /root/.bashrc && \
+RUN cat /root/bash_extra >> /root/.bashrc && \
     cat /root/bash_extra >> /site/.bashrc && \
     chsh -s $(which zsh) root && \
     chsh -s $(which zsh) "${WEB_USER}" && \
-    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
+    # Ensure correct ownership after copying
+    chown -R "${WEB_USER}:${WEB_USER}" /site
 
+# --- Copy Bash Completions ---
 COPY --link ./files/artisan-bash-prompt /etc/bash_completion.d/artisan-bash-prompt
 COPY --link ./files/composer-bash-prompt /etc/bash_completion.d/composer-bash-prompt
+RUN chmod u+rw,go+r /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt
 
-RUN mkdir -p /site/web/pharbin && \
-    touch /root/.bash_profile /site/.bash_profile && \
-    chown root: /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
-    chmod u+rw /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
-    chmod go+r /etc/bash_completion.d/artisan-bash-prompt /etc/bash_completion.d/composer-bash-prompt && \
-    mkdir -p /run/php
-
-WORKDIR /site/web
-
-RUN mkdir -p /site/tmp && \
-    find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
-
+# --- Copy Nginx Config ---
 COPY --link ./files/nginx_config /site/nginx/config
-
 RUN mkdir -p /site/logs/nginx && \
     mkdir -p /var/lib/nginx && \
-    find /var/lib/nginx -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
+    chown -R "${WEB_USER}:${WEB_USER}" /site/logs/nginx /var/lib/nginx /site/nginx
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONFAULTHANDLER=1 \
-    PYTHONHASHSEED=random \
-    PYTHONUNBUFFERED=1 \
-    PIP_DEFAULT_TIMEOUT=600 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-USER "${WEB_USER}"
-
-##    Does not support php 8.0 yet
-#    composer global require sllh/composer-versions-check && \
-#    composer global require povils/phpmnd
-
-#    Not needed for new composer
-#    composer global require hirak/prestissimo && \
-
-RUN composer config --global process-timeout "${COMPOSER_PROCESS_TIMEOUT}"
-
-USER root
-
+# --- Copy Logrotate Config ---
 COPY --link ./files/logrotate.d/ /etc/logrotate.d/
 
-RUN find /site -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+
+# --- Copy Supervisor Config ---
+COPY --link ./files/supervisord_base.conf /supervisord_base.conf
 
-RUN chmod -R a+w /dev/stdout && \
-    chmod -R a+w /dev/stderr && \
-    chmod -R a+w /dev/stdin && \
-    usermod -a -G tty syslog && \
-    usermod -a -G tty "${WEB_USER}"
+# --- Copy Rsyslog Config ---
+COPY --link ./files/rsyslog.conf /etc/rsyslog.conf
+COPY --link ./files/rsyslog.d/50-default.conf /etc/rsyslog.d/50-default.conf
 
-# Add openssh
+# --- Setup SSH ---
 RUN ssh-keygen -A && \
     mkdir -p /run/sshd && \
-    mkdir -p /run/sshd
-
-RUN mkdir -p /root/.ssh && \
+    mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
     chmod 600 /root/.ssh/authorized_keys && \
     chown -R root:root /root/.ssh
-
 COPY --chown=root: ./files/ssh/config /root/.ssh/config
 
 RUN mkdir -p /site/.ssh && \
     chmod 700 /site/.ssh && \
     touch /site/.ssh/authorized_keys && \
     chmod 600 /site/.ssh/authorized_keys && \
-    chown -R "${WEB_USER}:" /site/.ssh
+    chown -R "${WEB_USER}:${WEB_USER}" /site/.ssh
+COPY --chown="${WEB_USER}:${WEB_USER}" ./files/ssh/config /site/.ssh/config
 
-COPY --chown="${WEB_USER}:" ./files/ssh/config /site/.ssh/config
+# --- Final Setup ---
+RUN chmod -R a+w /dev/stdout /dev/stderr /dev/stdin && \
+    usermod -a -G tty syslog
 
+WORKDIR /site/web
+
+# --- Runtime Environment Variables ---
 ENV NGINX_SITES='locahost' \
     ENABLE_DEBUG="FALSE" \
     GEN_LV_ENV="FALSE" \
@@ -472,18 +525,18 @@ ENV NGINX_SITES='locahost' \
     ENABLE_SIMPLE_QUEUE="FALSE" \
     SIMPLE_WORKER_NUM="5" \
     ENABLE_SSH="FALSE" \
-    ENABLE_HEALTH_CHECK="FALSE"
+    ENABLE_HEALTH_CHECK="FALSE" \
+    ENABLE_WEBSOCKET="FALSE" \
+    ENABLE_REVERB_WEBSOCKET="FALSE" \
+    LARAVEL_WEBSOCKETS_PORT="2096"
 
-COPY --link ./files/supervisord_base.conf /supervisord_base.conf
-
-COPY --link ./files/rsyslog.conf /etc/rsyslog.conf
-COPY --link ./files/rsyslog.d/50-default.conf /etc/rsyslog.d/50-default.conf
-
+# --- Copy Startup Scripts ---
 COPY --link --chmod=0755 ./files/run_with_env.sh /bin/run_with_env.sh
 COPY --link --chmod=0744 ./files/start.sh /start.sh
 COPY --link --chmod=0744 ./files/testLoop.sh /testLoop.sh
 COPY --link --chmod=0744 ./files/healthCheck.sh /healthCheck.sh
 
+# --- Healthcheck, Entrypoint, Command ---
 HEALTHCHECK \
   --interval=5s \
   --timeout=2s \
@@ -493,5 +546,11 @@ HEALTHCHECK \
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-
 CMD ["/start.sh"]
+
+# --- Final Metadata ---
+LABEL org.opencontainers.image.authors="timh@haak.co"
+LABEL org.opencontainers.image.source="https://github.com/haakco/docker-ubuntu-php"
+LABEL org.opencontainers.image.title="docker-ubuntu-php-laravel"
+LABEL org.opencontainers.image.description="Base image for laravel projects"
+LABEL org.opencontainers.image.vendor="HaakCo"

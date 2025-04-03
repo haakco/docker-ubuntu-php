@@ -304,10 +304,13 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     rm -rf /var/lib/apt/lists/*
 
 # --- Copy Build Artifacts ---
-COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/brotli.so /usr/lib/php/${PHP_VERSION}/modules/
-COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/excimer.so /usr/lib/php/${PHP_VERSION}/modules/
+# Copy .so files from the PHP API versioned directory found in builder
+COPY --from=builder /usr/lib/php/20230831/brotli.so /usr/lib/php/20230831/
+COPY --from=builder /usr/lib/php/20230831/excimer.so /usr/lib/php/20230831/
+# Copy .ini files from their standard location
 COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /etc/php/${PHP_VERSION}/mods-available/
 COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /etc/php/${PHP_VERSION}/mods-available/
+# Copy other binaries
 COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/
 COPY --from=builder /root/.cargo/bin/eza /usr/local/bin/
 COPY --from=builder /usr/local/bin/composer /usr/local/bin/

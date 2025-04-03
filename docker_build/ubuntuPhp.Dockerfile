@@ -302,7 +302,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
     echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
     rm -rf /var/lib/apt/lists/*
- 
+
 # --- Copy Build Artifacts ---
 COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/brotli.so /usr/lib/php/${PHP_VERSION}/modules/
 COPY --from=builder /usr/lib/php/${PHP_VERSION}/modules/excimer.so /usr/lib/php/${PHP_VERSION}/modules/
@@ -316,11 +316,11 @@ COPY --from=builder /usr/local/bin/starship /usr/local/bin/
 COPY --from=builder /root/.oh-my-zsh /root/.oh-my-zsh
 # Copy oh-my-zsh for web user too if needed
 # COPY --from=builder /root/.oh-my-zsh /site/.oh-my-zsh
- 
+
 # --- Enable Copied PECL Extensions ---
 # Enabling is commented out - can be done in downstream images if needed
 # RUN phpenmod -v "${PHP_VERSION}" brotli excimer
- 
+
 # --- Configure PHP ---
 ENV PHP_TIMEZONE="UTC" \
     PHP_UPLOAD_MAX_FILESIZE="256M" \

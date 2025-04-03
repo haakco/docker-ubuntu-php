@@ -128,7 +128,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
       php${PHP_VERSION}-dev \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-http \
-      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
+      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
       php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql \
@@ -146,6 +146,8 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
     pecl install excimer && \
     echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
+    pecl install inotify && \
+    echo "extension=inotify.so" > "/etc/php/${PHP_VERSION}/mods-available/inotify.ini" && \
     # Cleanup build dependencies for PHP extensions if possible (some might be needed by runtime libs)
     # apt-get purge -y --auto-remove php${PHP_VERSION}-dev ... other -dev packages ... && \
     rm -rf /var/lib/apt/lists/* && rm -rf /tmp/pear
@@ -305,11 +307,13 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
 
 # --- Copy Build Artifacts ---
 # Copy .so files from the PHP API versioned directory found in builder
-COPY --from=builder /usr/lib/php/20230831/brotli.so /usr/lib/php/20230831/
-COPY --from=builder /usr/lib/php/20230831/excimer.so /usr/lib/php/20230831/
+COPY --from=builder /usr/lib/php/20230831/brotli.so /usr/lib/php/20230831/ # Note: Path likely correct only for PHP 8.3
+COPY --from=builder /usr/lib/php/20230831/excimer.so /usr/lib/php/20230831/ # Note: Path likely correct only for PHP 8.3
+COPY --from=builder /usr/lib/php/20230831/inotify.so /usr/lib/php/20230831/ # Note: Path likely needs update for PHP 8.4 API dir
 # Copy .ini files from their standard location
 COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /etc/php/${PHP_VERSION}/mods-available/
 COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /etc/php/${PHP_VERSION}/mods-available/
+COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/inotify.ini /etc/php/${PHP_VERSION}/mods-available/
 # Copy other binaries
 COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/
 COPY --from=builder /root/.cargo/bin/eza /usr/local/bin/

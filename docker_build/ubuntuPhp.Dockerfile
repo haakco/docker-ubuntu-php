@@ -299,7 +299,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     apt-get update && \
     apt-get install -qy --no-install-recommends \
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
-      php${PHP_VERSION}-dev \ # Temporarily add dev package for php-config
+      php${PHP_VERSION}-dev \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \

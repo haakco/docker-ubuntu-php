@@ -167,6 +167,22 @@ RUN apt-get purge -y --auto-remove build-essential pkg-config php${PHP_VERSION}-
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/pear /root/.cache /var/cache/apt/*
 
+# Determine builder extension dir and copy successfully built PECL extensions to a known temp location
+RUN BUILDER_EXT_DIR=$(php-config --extension-dir) && \
+    echo "Builder extension dir: ${BUILDER_EXT_DIR}" && \
+    mkdir -p /tmp/ext_to_copy && \
+    ( [ -f "${BUILDER_EXT_DIR}/brotli.so" ] && cp "${BUILDER_EXT_DIR}/brotli.so" /tmp/ext_to_copy/ || echo "brotli.so not found in builder" ) && \
+    ( [ -f "${BUILDER_EXT_DIR}/excimer.so" ] && cp "${BUILDER_EXT_DIR}/excimer.so" /tmp/ext_to_copy/ || echo "excimer.so not found in builder" ) && \
+    ( [ -f "${BUILDER_EXT_DIR}/inotify.so" ] && cp "${BUILDER_EXT_DIR}/inotify.so" /tmp/ext_to_copy/ || echo "inotify.so not found in builder" )
+
+# --- Cleanup Builder Stage Dependencies ---
+RUN apt-get purge -y --auto-remove build-essential pkg-config php${PHP_VERSION}-dev libbrotli-dev \
+      libcurl4-openssl-dev libicu-dev libidn*-dev libmcrypt-dev libsodium-dev libssh2-1-dev \
+      libzstd-dev libxml2-dev libssl-dev libgmp-dev libldap2-dev libpq-dev libsqlite3-dev \
+      libbz2-dev libreadline-dev libxslt1-dev libzip-dev librdkafka-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/pear /root/.cache /var/cache/apt/*
+
 # --- Install Composer ---
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
@@ -325,30 +341,31 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /var/cache/apt/*
 
 # --- Copy Build Artifacts ---
-# Copy .ini files from their standard location (these are fine)
-COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /etc/php/${PHP_VERSION}/mods-available/
-COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /etc/php/${PHP_VERSION}/mods-available/
-# Only copy inotify.ini if it exists in builder (use || true to prevent failure)
-COPY --from=builder --chown=root:root /etc/php/${PHP_VERSION}/mods-available/inotify.ini /etc/php/${PHP_VERSION}/mods-available/inotify.ini || true
-
 # Copy the prepared .so files from the builder's temp location
 COPY --from=builder /tmp/ext_to_copy/ /tmp/ext_to_copy/
 
-# Determine final extension dir and move .so files into place
+# Copy potentially existing .ini files from builder to a temporary location in final stage
+RUN mkdir -p /tmp/ini_to_copy
+COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /tmp/ini_to_copy/brotli.ini
+COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /tmp/ini_to_copy/excimer.ini
+COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/inotify.ini /tmp/ini_to_copy/inotify.ini || true
+
+# Determine final extension dir and move .so files / .ini files into place
 RUN FINAL_EXT_DIR=$(php-config --extension-dir) && \
+    FINAL_MODS_DIR="/etc/php/${PHP_VERSION}/mods-available" && \
     echo "Final extension dir: ${FINAL_EXT_DIR}" && \
-    # Move files if they exist in the temp dir
+    echo "Final mods dir: ${FINAL_MODS_DIR}" && \
+    # Move .so files if they exist in the temp dir
     ( [ -f /tmp/ext_to_copy/brotli.so ] && mv /tmp/ext_to_copy/brotli.so "${FINAL_EXT_DIR}/" || true ) && \
     ( [ -f /tmp/ext_to_copy/excimer.so ] && mv /tmp/ext_to_copy/excimer.so "${FINAL_EXT_DIR}/" || true ) && \
     ( [ -f /tmp/ext_to_copy/inotify.so ] && mv /tmp/ext_to_copy/inotify.so "${FINAL_EXT_DIR}/" || true ) && \
-    # Clean up temp directory
-    rm -rf /tmp/ext_to_copy
-
-# --- Enable Copied PECL Extensions ---
-# Enabling is commented out - can be done in downstream images if needed
-# RUN phpenmod -v "${PHP_VERSION}" brotli excimer
-# Only enable inotify if the ini file exists
-# RUN if [ -f "/etc/php/${PHP_VERSION}/mods-available/inotify.ini" ]; then phpenmod -v "${PHP_VERSION}" inotify; fi
+    # Move .ini files to final destination
+    mkdir -p "${FINAL_MODS_DIR}" && \
+    ( [ -f /tmp/ini_to_copy/brotli.ini ] && mv /tmp/ini_to_copy/brotli.ini "${FINAL_MODS_DIR}/" || true ) && \
+    ( [ -f /tmp/ini_to_copy/excimer.ini ] && mv /tmp/ini_to_copy/excimer.ini "${FINAL_MODS_DIR}/" || true ) && \
+    ( [ -f /tmp/ini_to_copy/inotify.ini ] && mv /tmp/ini_to_copy/inotify.ini "${FINAL_MODS_DIR}/" || true ) && \
+    # Clean up temp directories
+    rm -rf /tmp/ext_to_copy /tmp/ini_to_copy
 
 # Copy other binaries
 COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/

@@ -289,7 +289,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
       php${PHP_VERSION}-http \
-      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-inotify php${PHP_VERSION}-intl \
+      php${PHP_VERSION}-igbinary php${PHP_VERSION}-imagick php${PHP_VERSION}-intl \
       php${PHP_VERSION}-ldap \
       php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
       php${PHP_VERSION}-pcov php${PHP_VERSION}-pgsql \

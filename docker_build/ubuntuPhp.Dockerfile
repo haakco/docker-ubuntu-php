@@ -149,14 +149,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     # Attempt to install inotify, but continue if it fails
     (pecl install inotify && \
      echo "extension=inotify.so" > "/etc/php/${PHP_VERSION}/mods-available/inotify.ini") || \
-     echo "Skipping inotify installation/config (might be incompatible or unavailable for PHP ${PHP_VERSION})" && \
-    # Cleanup build dependencies and apt lists
-    apt-get purge -y --auto-remove build-essential pkg-config php${PHP_VERSION}-dev libbrotli-dev \
-      libcurl4-openssl-dev libicu-dev libidn*-dev libmcrypt-dev libsodium-dev libssh2-1-dev \
-      libzstd-dev libxml2-dev libssl-dev libgmp-dev libldap2-dev libpq-dev libsqlite3-dev \
-      libbz2-dev libreadline-dev libxslt1-dev libzip-dev librdkafka-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/pear /root/.cache /var/cache/apt/*
+     echo "Skipping inotify installation/config (might be incompatible or unavailable for PHP ${PHP_VERSION})" # Cleanup moved to later step
 
 # Determine builder extension dir and copy successfully built PECL extensions to a known temp location
 RUN BUILDER_EXT_DIR=$(php-config --extension-dir) && \
@@ -165,6 +158,14 @@ RUN BUILDER_EXT_DIR=$(php-config --extension-dir) && \
     ( [ -f "${BUILDER_EXT_DIR}/brotli.so" ] && cp "${BUILDER_EXT_DIR}/brotli.so" /tmp/ext_to_copy/ || echo "brotli.so not found in builder" ) && \
     ( [ -f "${BUILDER_EXT_DIR}/excimer.so" ] && cp "${BUILDER_EXT_DIR}/excimer.so" /tmp/ext_to_copy/ || echo "excimer.so not found in builder" ) && \
     ( [ -f "${BUILDER_EXT_DIR}/inotify.so" ] && cp "${BUILDER_EXT_DIR}/inotify.so" /tmp/ext_to_copy/ || echo "inotify.so not found in builder" )
+
+# --- Cleanup Builder Stage Dependencies ---
+RUN apt-get purge -y --auto-remove build-essential pkg-config php${PHP_VERSION}-dev libbrotli-dev \
+      libcurl4-openssl-dev libicu-dev libidn*-dev libmcrypt-dev libsodium-dev libssh2-1-dev \
+      libzstd-dev libxml2-dev libssl-dev libgmp-dev libldap2-dev libpq-dev libsqlite3-dev \
+      libbz2-dev libreadline-dev libxslt1-dev libzip-dev librdkafka-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/pear /root/.cache /var/cache/apt/*
 
 # --- Install Composer ---
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \

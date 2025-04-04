@@ -146,11 +146,21 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     echo "extension=brotli.so" > "/etc/php/${PHP_VERSION}/mods-available/brotli.ini" && \
     pecl install excimer && \
     echo "extension=excimer.so" > "/etc/php/${PHP_VERSION}/mods-available/excimer.ini" && \
-    pecl install inotify && \
-    echo "extension=inotify.so" > "/etc/php/${PHP_VERSION}/mods-available/inotify.ini" && \
+    # Attempt to install inotify, but continue if it fails
+    (pecl install inotify && \
+     echo "extension=inotify.so" > "/etc/php/${PHP_VERSION}/mods-available/inotify.ini") || \
+     echo "Skipping inotify installation/config (might be incompatible or unavailable for PHP ${PHP_VERSION})" && \
     # Cleanup build dependencies for PHP extensions if possible (some might be needed by runtime libs)
     # apt-get purge -y --auto-remove php${PHP_VERSION}-dev ... other -dev packages ... && \
     rm -rf /var/lib/apt/lists/* && rm -rf /tmp/pear
+
+# Determine builder extension dir and copy successfully built PECL extensions to a known temp location
+RUN BUILDER_EXT_DIR=$(php-config --extension-dir) && \
+    echo "Builder extension dir: ${BUILDER_EXT_DIR}" && \
+    mkdir -p /tmp/ext_to_copy && \
+    ( [ -f "${BUILDER_EXT_DIR}/brotli.so" ] && cp "${BUILDER_EXT_DIR}/brotli.so" /tmp/ext_to_copy/ || echo "brotli.so not found in builder" ) && \
+    ( [ -f "${BUILDER_EXT_DIR}/excimer.so" ] && cp "${BUILDER_EXT_DIR}/excimer.so" /tmp/ext_to_copy/ || echo "excimer.so not found in builder" ) && \
+    ( [ -f "${BUILDER_EXT_DIR}/inotify.so" ] && cp "${BUILDER_EXT_DIR}/inotify.so" /tmp/ext_to_copy/ || echo "inotify.so not found in builder" )
 
 # --- Install Composer ---
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
@@ -285,6 +295,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     apt-get update && \
     apt-get install -qy --no-install-recommends \
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
+      php${PHP_VERSION}-dev \ # Temporarily add dev package for php-config
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
       php${PHP_VERSION}-gd php${PHP_VERSION}-gmp \
@@ -303,17 +314,29 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
     echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
+    # Remove dev package after use
+    apt-get purge -y --auto-remove php${PHP_VERSION}-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # --- Copy Build Artifacts ---
-# Copy .so files from the PHP API versioned directory found in builder
-COPY --from=builder /usr/lib/php/20230831/brotli.so /usr/lib/php/20230831/ # Note: Path likely correct only for PHP 8.3
-COPY --from=builder /usr/lib/php/20230831/excimer.so /usr/lib/php/20230831/ # Note: Path likely correct only for PHP 8.3
-COPY --from=builder /usr/lib/php/20230831/inotify.so /usr/lib/php/20230831/ # Note: Path likely needs update for PHP 8.4 API dir
-# Copy .ini files from their standard location
+# Copy .ini files from their standard location (these are fine)
 COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/brotli.ini /etc/php/${PHP_VERSION}/mods-available/
 COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/excimer.ini /etc/php/${PHP_VERSION}/mods-available/
-COPY --from=builder /etc/php/${PHP_VERSION}/mods-available/inotify.ini /etc/php/${PHP_VERSION}/mods-available/
+# Only copy inotify.ini if it exists in builder (use || true to prevent failure)
+COPY --from=builder --chown=root:root /etc/php/${PHP_VERSION}/mods-available/inotify.ini /etc/php/${PHP_VERSION}/mods-available/inotify.ini || true
+
+# Copy the prepared .so files from the builder's temp location
+COPY --from=builder /tmp/ext_to_copy/ /tmp/ext_to_copy/
+
+# Determine final extension dir and move .so files into place
+RUN FINAL_EXT_DIR=$(php-config --extension-dir) && \
+    echo "Final extension dir: ${FINAL_EXT_DIR}" && \
+    # Move files if they exist in the temp dir
+    ( [ -f /tmp/ext_to_copy/brotli.so ] && mv /tmp/ext_to_copy/brotli.so "${FINAL_EXT_DIR}/" || true ) && \
+    ( [ -f /tmp/ext_to_copy/excimer.so ] && mv /tmp/ext_to_copy/excimer.so "${FINAL_EXT_DIR}/" || true ) && \
+    ( [ -f /tmp/ext_to_copy/inotify.so ] && mv /tmp/ext_to_copy/inotify.so "${FINAL_EXT_DIR}/" || true ) && \
+    # Clean up temp directory
+    rm -rf /tmp/ext_to_copy
 # Copy other binaries
 COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/
 COPY --from=builder /root/.cargo/bin/eza /usr/local/bin/

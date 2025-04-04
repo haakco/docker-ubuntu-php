@@ -150,9 +150,13 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     (pecl install inotify && \
      echo "extension=inotify.so" > "/etc/php/${PHP_VERSION}/mods-available/inotify.ini") || \
      echo "Skipping inotify installation/config (might be incompatible or unavailable for PHP ${PHP_VERSION})" && \
-    # Cleanup build dependencies for PHP extensions if possible (some might be needed by runtime libs)
-    # apt-get purge -y --auto-remove php${PHP_VERSION}-dev ... other -dev packages ... && \
-    rm -rf /var/lib/apt/lists/* && rm -rf /tmp/pear
+    # Cleanup build dependencies and apt lists
+    apt-get purge -y --auto-remove build-essential pkg-config php${PHP_VERSION}-dev libbrotli-dev \
+      libcurl4-openssl-dev libicu-dev libidn*-dev libmcrypt-dev libsodium-dev libssh2-1-dev \
+      libzstd-dev libxml2-dev libssl-dev libgmp-dev libldap2-dev libpq-dev libsqlite3-dev \
+      libbz2-dev libreadline-dev libxslt1-dev libzip-dev librdkafka-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/pear /root/.cache /var/cache/apt/*
 
 # Determine builder extension dir and copy successfully built PECL extensions to a known temp location
 RUN BUILDER_EXT_DIR=$(php-config --extension-dir) && \
@@ -314,9 +318,10 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
     echo "web        soft        nofile        100000" > /etc/security/limits.d/laravel-echo.conf && \
-    # Remove dev package after use
+    # Remove dev package after use and clean up apt cache
     apt-get purge -y --auto-remove php${PHP_VERSION}-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /var/cache/apt/*
 
 # --- Copy Build Artifacts ---
 # Copy .ini files from their standard location (these are fine)

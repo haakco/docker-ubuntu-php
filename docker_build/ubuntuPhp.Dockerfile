@@ -342,6 +342,13 @@ RUN FINAL_EXT_DIR=$(php-config --extension-dir) && \
     ( [ -f /tmp/ext_to_copy/inotify.so ] && mv /tmp/ext_to_copy/inotify.so "${FINAL_EXT_DIR}/" || true ) && \
     # Clean up temp directory
     rm -rf /tmp/ext_to_copy
+
+# --- Enable Copied PECL Extensions ---
+# Enabling is commented out - can be done in downstream images if needed
+# RUN phpenmod -v "${PHP_VERSION}" brotli excimer
+# Only enable inotify if the ini file exists
+# RUN if [ -f "/etc/php/${PHP_VERSION}/mods-available/inotify.ini" ]; then phpenmod -v "${PHP_VERSION}" inotify; fi
+
 # Copy other binaries
 COPY --from=builder /usr/local/bin/yamlfmt /usr/local/bin/
 COPY --from=builder /root/.cargo/bin/eza /usr/local/bin/

@@ -442,13 +442,6 @@ RUN sed -Ei \
         -e 's/;request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/' \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
 
-COPY <<EOF "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
-  php_flag[display_errors] = off
-  php_admin_flag[log_errors] = on
-  php_admin_flag[fastcgi.logging] = off
-  php_admin_value[error_log] = ${PHP_ERROR_LOG}
-EOF
-
 # --- Setup User and Permissions ---
 RUN deluser --remove-home ubuntu || true
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \

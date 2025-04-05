@@ -200,13 +200,13 @@ rm ${TEMP_CRON_FILE}
 sed -E -i -e "s/PHP_VERSION/${PHP_VERSION}/g" /supervisord.conf
 
 if [[ "${ENABLE_DEBUG}" = "TRUE" ]]; then
-  phpenmod -v "${PHP_VERSION}" xdebug
-  phpenmod -v "${PHP_VERSION}" pcov
-  phpdismod -v "${PHP_VERSION}" opcache-jit
+  phpenmod -v ALL xdebug
+  phpenmod -v ALL pcov
+  phpdismod -v ALL opcache-jit
 else
-  phpdismod -v "${PHP_VERSION}" xdebug
-  phpdismod -v "${PHP_VERSION}" pcov
-  phpenmod -v "${PHP_VERSION}" opcache-jit
+  phpdismod -v ALL xdebug
+  phpdismod -v ALL pcov
+  phpenmod -v ALL opcache-jit
 fi
 
 if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then

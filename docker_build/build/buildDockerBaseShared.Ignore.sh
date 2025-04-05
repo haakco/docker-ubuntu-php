@@ -99,12 +99,18 @@ export CACHE_FROM_LOCAL=" --cache-from type=local,src=/tmp/buildkit/cache,ref=${
 export CACHE_TO_REGISTRY=" --cache-to type=registry,oci-mediatypes=true,image-manifest=true,mode=max,compression=${DOCKER_COMPRESSION_TYPE},compression-level=${DOCKER_COMPRESSION_LEVEL},force-compression=true,ref=${REGISTRY_BUILD_CACHE_NAME_FULL}"
 export CACHE_FROM_REGISTRY=" --cache-from type=registry,ref=${REGISTRY_BUILD_CACHE_NAME_FULL}"
 
+# Define cache flags based on whether caching is disabled
 if [[ "${DISABLE_BUILD_CACHE}" == 'TRUE' ]]; then
-  BUILD_CACHE=" --no-cache "
+  BUILD_CACHE_FLAGS_LOCAL=" --no-cache "
+  BUILD_CACHE_FLAGS_PUSH=" --no-cache "
 else
-  BUILD_CACHE=" ${CACHE_TO_LOCAL} ${CACHE_FROM_LOCAL} ${CACHE_TO_REGISTRY} ${CACHE_FROM_REGISTRY}"
+  # Local builds only use local cache
+  BUILD_CACHE_FLAGS_LOCAL=" ${CACHE_TO_LOCAL} ${CACHE_FROM_LOCAL} "
+  # Pushed builds use both local and registry cache for reading and writing
+  BUILD_CACHE_FLAGS_PUSH=" ${CACHE_TO_LOCAL} ${CACHE_FROM_LOCAL} ${CACHE_TO_REGISTRY} ${CACHE_FROM_REGISTRY} "
 fi
-export BUILD_CACHE
+export BUILD_CACHE_FLAGS_LOCAL
+export BUILD_CACHE_FLAGS_PUSH
 
 
 if [[ "${BUILD_PULL}" != 'TRUE' ]]; then
@@ -116,7 +122,6 @@ export PULL_BASE_IMAGE
 
 echo "ScriptDir: ${SCRIPT_DIR}"
 echo ""
-echo ""
 echo "Branch: ${BRANCH_NAME_FROM_GIT}"
 echo ""
 echo "BASE_IMAGE_NAME_FULL: ${BASE_IMAGE_NAME_FULL}"
@@ -127,15 +132,34 @@ echo "SCRIPT_DIR: ${SCRIPT_DIR}"
 echo "DISABLE_BUILD_CACHE: ${DISABLE_BUILD_CACHE}"
 echo "BUILD_CACHE: ${BUILD_CACHE}"
 echo "BUILD_PULL: ${BUILD_PULL}"
+echo "Branch: ${BRANCH_NAME_FROM_GIT}"
 echo ""
+echo "BASE_IMAGE_NAME_FULL: ${BASE_IMAGE_NAME_FULL}"
+echo "REGISTRY_BUILD_IMAGE_NAME_FULL: ${REGISTRY_BUILD_IMAGE_NAME_FULL}"
+echo ""
+echo "DOCKER_FILE: ${DOCKER_FILE}"
+echo "SCRIPT_DIR: ${SCRIPT_DIR}"
+echo "DISABLE_BUILD_CACHE: ${DISABLE_BUILD_CACHE}"
+echo "BUILD_PULL: ${BUILD_PULL}"
+echo ""
+echo "Local Cache Flags: ${BUILD_CACHE_FLAGS_LOCAL}"
+echo "Push Cache Flags: ${BUILD_CACHE_FLAGS_PUSH}"
 echo ""
 
-export CMD_BASE='docker buildx build --rm '"${PULL_BASE_IMAGE}"' '"${BUILD_CACHE}"
-export CMD_SUFFIX='--file "'${DOCKER_FILE}'" -t "'${REGISTRY_BUILD_IMAGE_NAME_FULL}'" '"${EXTRA_FLAGS}"' .'
+# Define base command parts - cache flags will be added specifically below
+CMD_BASE_BUILD='docker buildx build --rm '"${PULL_BASE_IMAGE}"
+export CMD_BASE_BUILD
+CMD_SUFFIX='--file "'${DOCKER_FILE}'" -t "'${REGISTRY_BUILD_IMAGE_NAME_FULL}'" '"${EXTRA_FLAGS}"' .'
+export CMD_SUFFIX
 
-export CMD_REMOTE_OUTPUT="--output type=image,oci-mediatypes=true,name=${REGISTRY_BUILD_IMAGE_NAME_FULL},push=true,compression=${DOCKER_COMPRESSION_TYPE},compression-level=${DOCKER_COMPRESSION_LEVEL},force-compression=true"
-export CMD_REMOTE_PLATFORM="linux/arm64/v8,linux/amd64"
-export CMD_PUSH="${CMD_BASE} --platform ${CMD_REMOTE_PLATFORM} ${CMD_REMOTE_OUTPUT} ${CMD_SUFFIX}"
+# --- Push Command Configuration ---
+CMD_REMOTE_OUTPUT="--output type=image,oci-mediatypes=true,name=${REGISTRY_BUILD_IMAGE_NAME_FULL},push=true,compression=${DOCKER_COMPRESSION_TYPE},compression-level=${DOCKER_COMPRESSION_LEVEL},force-compression=true"
+export CMD_REMOTE_OUTPUT
+CMD_REMOTE_PLATFORM="linux/arm64/v8,linux/amd64"
+export CMD_REMOTE_PLATFORM
+# Use push-specific cache flags for the push command
+CMD_PUSH="${CMD_BASE_BUILD} ${BUILD_CACHE_FLAGS_PUSH} --platform ${CMD_REMOTE_PLATFORM} ${CMD_REMOTE_OUTPUT} ${CMD_SUFFIX}"
+export CMD_PUSH
 
 if [[ "$(uname -p)" == "x86_64" ]]; then
   LOCAL_PLATFORM='linux/amd64'
@@ -144,12 +168,20 @@ else
 fi
 export LOCAL_PLATFORM
 
+# --- Local Command Configuration ---
 CMD_LOCAL_OUTPUT="--output type=docker,oci-mediatypes=true,name=${REGISTRY_BUILD_IMAGE_NAME_FULL},compression=${DOCKER_COMPRESSION_TYPE},compression-level=${DOCKER_COMPRESSION_LEVEL},force-compression=true"
-export CMD_LOCAL="${CMD_BASE} --platform ${LOCAL_PLATFORM} ${CMD_LOCAL_OUTPUT} ${CMD_SUFFIX}"
+export CMD_LOCAL_OUTPUT
+# Use local-specific cache flags for the local command
+CMD_LOCAL="${CMD_BASE_BUILD} ${BUILD_CACHE_FLAGS_LOCAL} --platform ${LOCAL_PLATFORM} ${CMD_LOCAL_OUTPUT} ${CMD_SUFFIX}"
+export CMD_LOCAL
+
+# --- Execute Build Commands ---
 
 if [[ "${BUILD_PUSH}" == 'TRUE' ]]; then
   echo ""
-  echo "CMD_BASE: ${CMD_BASE}"
+  echo "--- Pushing Multi-Platform Image ---"
+  echo "CMD_BASE_BUILD: ${CMD_BASE_BUILD}"
+  echo "BUILD_CACHE_FLAGS_PUSH: ${BUILD_CACHE_FLAGS_PUSH}"
   echo "CMD_REMOTE_PLATFORM: ${CMD_REMOTE_PLATFORM}"
   echo "CMD_REMOTE_OUTPUT: ${CMD_REMOTE_OUTPUT}"
   echo "CMD_SUFFIX: ${CMD_SUFFIX}"
@@ -162,7 +194,9 @@ fi
 
 if [[ "${BUILD_LOCAL}" == 'TRUE' ]]; then
   echo ""
-  echo "CMD_BASE: ${CMD_BASE}"
+  echo "--- Building Local Image ---"
+  echo "CMD_BASE_BUILD: ${CMD_BASE_BUILD}"
+  echo "BUILD_CACHE_FLAGS_LOCAL: ${BUILD_CACHE_FLAGS_LOCAL}"
   echo "LOCAL_PLATFORM: ${LOCAL_PLATFORM}"
   echo "CMD_LOCAL_OUTPUT: ${CMD_LOCAL_OUTPUT}"
   echo "CMD_SUFFIX: ${CMD_SUFFIX}"

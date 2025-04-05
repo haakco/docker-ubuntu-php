@@ -365,13 +365,30 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_FPM_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/php-fpm.conf" \
     PHP_FPM_WWW_CONFIG_FILE="/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
 
-RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}".bak && \
-    cp "${PHP_INI_FPM_CONFIG_FILE}" "${PHP_INI_FPM_CONFIG_FILE}".bak
+# Create backups before modifying in Dockerfile build
+RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}.docker" && \
+    cp "${PHP_INI_FPM_CONFIG_FILE}" "${PHP_INI_FPM_CONFIG_FILE}.docker" && \
+    cp "${PHP_FPM_CONFIG_FILE}" "${PHP_FPM_CONFIG_FILE}.docker" && \
+    cp "${PHP_FPM_WWW_CONFIG_FILE}" "${PHP_FPM_WWW_CONFIG_FILE}.docker"
 
-RUN sed -Ei \
-      -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
-      -e "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/"  \
-      -e "s/short_open_tag = .*/short_open_tag = Off/" \
+# Copy and run the configuration script
+COPY --link --chmod=0755 ./files/configure_php_nginx.sh /configure_php_nginx.sh
+RUN /configure_php_nginx.sh
+
+# Create opcache JIT config file (This is specific and not part of the main sed block)
+RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini
+; Ability to disable jit if enabling debugging
+opcache.jit_buffer_size=${PHP_OPCACHE_JIT_BUFFER_SIZE}
+opcache.jit=${PHP_OPCACHE_JIT}
+FILE1
+
+# --- Setup User and Permissions ---
+# Remove default ubuntu user if it exists
+RUN deluser --remove-home ubuntu || true
+# Add web user
+RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
+    usermod -a -G tty "${WEB_USER}" && \
+    mkdir -p /site/web && \
       -e "s@;date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
       -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
       -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
@@ -398,51 +415,8 @@ RUN sed -Ei \
       -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
       -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
       -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
-      -e "s/;opcache.max_wasted_percentage=.*/;opcache.max_wasted_percentage=10/" \
-      "${PHP_INI_CLI_CONFIG_FILE}" \
-      "${PHP_INI_FPM_CONFIG_FILE}"
-
-RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini
-; Ability to disable jit if enabling debugging
-opcache.jit_buffer_size=${PHP_OPCACHE_JIT_BUFFER_SIZE}
-opcache.jit=${PHP_OPCACHE_JIT}
-FILE1
-
-RUN sed -Ei \
-        -e "s/precision = .*/precision = -1/" \
-        -e "s/expose_php.*/expose_php = Off/" \
-        -e "s/display_startup_error.*/display_startup_error = Off/" \
-      "${PHP_INI_CLI_CONFIG_FILE}" \
-      "${PHP_INI_FPM_CONFIG_FILE}"
-
-RUN sed -Ei \
-        -e "s#error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
-        -e "s#.*syslog\.ident = .*#syslog.ident = ${PHP_FPM_IDENT}#" \
-        -e "s/.*log_buffering = .*/log_buffering = yes/" \
-        /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
-
-RUN sed -Ei \
-        -e "s#^(;|)access.log = .*#access.log = ${PHP_ACCESS_LOG}#" \
-        -e "s/^user = .*/user = ${WEB_USER}/" \
-        -e "s/^group = .*/group = ${WEB_USER}/" \
-        -e 's/listen\.owner.*/listen.owner = ${WEB_USER}/' \
-        -e 's/listen\.group.*/listen.group = ${WEB_USER}/' \
-        -e "s/.*listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
-        -e "s/^pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
-        -e "s/^pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
-        -e "s/^pm\.min_spare_servers = .*/pm.min_spare_servers = ${FPM_MIN_SPARE_SERVERS}/" \
-        -e "s/^pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
-        -e "s/.*pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
-        -e "s/^(;|)catch_workers_output = .*/catch_workers_output = yes/" \
-        -e "s/^(;|)decorate_workers_output = .*/decorate_workers_output = no/" \
-        -e "s/.*pm\.status_path = .*/pm.status_path = \/fpm-status/" \
-        -e "s/^(;|)pm.status_listen = .*/pm.status_listen = 127.0.0.1:9001/" \
-        -e "s/^(;|)ping\.path = .*/ping.path = \/fpm-ping/" \
-        -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
-        -e 's/;request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/' \
-        /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
-
 # --- Setup User and Permissions ---
+# Remove default ubuntu user if it exists
 RUN deluser --remove-home ubuntu || true
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
     usermod -a -G tty "${WEB_USER}" && \

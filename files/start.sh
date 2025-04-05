@@ -57,14 +57,20 @@ export FPM_MIN_SPARE_SERVERS=${FPM_MIN_SPARE_SERVERS:-4}
 export FPM_MAX_SPARE_SERVERS=${FPM_MAX_SPARE_SERVERS:-8}
 export FPM_MAX_REQUESTS=${FPM_MAX_REQUESTS:-1000}
 export NGINX_CLIENT_BODY_BUFFER_SIZE=${NGINX_CLIENT_BODY_BUFFER_SIZE:-""}
+export NGINX_CLIENT_MAX_BODY_SIZE=${NGINX_CLIENT_MAX_BODY_SIZE:-""}
 
-cp /etc/php/${PHP_VERSION}/cli/php.ini /etc/php/${PHP_VERSION}/cli/php.ini.bak.run
-cp /etc/php/${PHP_VERSION}/fpm/php.ini /etc/php/${PHP_VERSION}/fpm/php.ini.bak.run
+# Create runtime backups before modifying
+cp "/etc/php/${PHP_VERSION}/cli/php.ini" "/etc/php/${PHP_VERSION}/cli/php.ini.docker.runtime"
+cp "/etc/php/${PHP_VERSION}/fpm/php.ini" "/etc/php/${PHP_VERSION}/fpm/php.ini.docker.runtime"
+cp "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf" "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf.docker.runtime"
+cp "/site/nginx/config/sites.conf" "/site/nginx/config/sites.conf.docker.runtime"
+cp "/site/nginx/config/nginx.conf" "/site/nginx/config/nginx.conf.docker.runtime"
 
-sed -Ei \
-  -e "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" \
-  -e "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/"  \
-  -e "s@date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
+# Run the centralized configuration script
+/configure_php_nginx.sh
+
+# Copy base supervisor config and modify based on ENV vars
+cp /supervisord_base.conf /supervisord.conf
   -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
   -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
   -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
@@ -79,24 +85,7 @@ sed -Ei \
   -e "s/opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
   -e "s/opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
   -e "s/opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
-  -e "s/opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
-  "/etc/php/${PHP_VERSION}/cli/php.ini" \
-  "/etc/php/${PHP_VERSION}/fpm/php.ini"
-
-sed -Ei \
-  -e "s#^(;|)access.log = .*#access.log = ${PHP_ACCESS_LOG}#" \
-  -e "s/^(;|)syslog\.ident = .*/syslog.ident = ${PHP_FPM_IDENT}/" \
-  -e "s/^(;|)listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
-  -e "s/^(;|)pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
-  -e "s/^(;|)pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
-  -e "s/^(;|)pm\.min_spare_servers = .*/pm.min_spare_servers = ${FPM_MIN_SPARE_SERVERS}/" \
-  -e "s/^(;|)pm\.max_spare_servers = .*/pm.max_spare_servers = ${FPM_MAX_SPARE_SERVERS}/" \
-  -e "s/^(;|)pm\.max_requests = .*/pm.max_requests = ${FPM_MAX_REQUESTS}/" \
-  -e "s#^(;|)request_terminate_timeout = .*#request_terminate_timeout = ${FPM_TIMEOUT}#" \
-  -e "s/^listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
-  -e "s/^(;|)clear_env = .*/clear_env = no/" \
-  "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
-
+# Copy base supervisor config and modify based on ENV vars
 cp /supervisord_base.conf /supervisord.conf
 
 if [[ "${ENABLE_WEB}" = "TRUE" ]]; then
@@ -236,23 +225,6 @@ if [[ -e "${INITIALISE_FILE}" ]]; then
   chmod u+x "${INITIALISE_FILE}"
   chmod a+r /root/.composer
   su web --preserve-environment -c "${INITIALISE_FILE}" >> /dev/stdout
-fi
-
-sed -Ei \
-  -e "s/NGINX_SITES/${NGINX_SITES}/" \
-  -e "s/LARAVEL_WEBSOCKETS_PORT/${LARAVEL_WEBSOCKETS_PORT}/" \
-  /site/nginx/config/sites.conf
-
-if [[ -n "${NGINX_CLIENT_BODY_BUFFER_SIZE}" ]]; then
-  sed -Ei -e "s/client_body_buffer_size 1m/client_body_buffer_size ${NGINX_CLIENT_BODY_BUFFER_SIZE}/" /site/nginx/config/nginx.conf
-fi
-
-if [[ -n "${NGINX_CLIENT_BODY_BUFFER_SIZE}" ]]; then
-  sed -Ei -e "s/client_body_buffer_size .+/client_body_buffer_size ${NGINX_CLIENT_BODY_BUFFER_SIZE};/" /site/nginx/config/nginx.conf
-fi
-
-if [[ -n "${NGINX_CLIENT_MAX_BODY_SIZE}" ]]; then
-  sed -Ei -e "s/client_max_body_size .+/client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};/" /site/nginx/config/nginx.conf
 fi
 
 ## Rotate logs at start just in case

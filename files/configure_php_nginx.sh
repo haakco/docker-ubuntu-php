@@ -55,8 +55,8 @@ sed -Ei \
   -e "s#^(;|)access.log = .*#access.log = ${PHP_ACCESS_LOG}#" \
   -e "s/^user = .*/user = ${WEB_USER}/" \
   -e "s/^group = .*/group = ${WEB_USER}/" \
-  -e 's/listen\.owner.*/listen.owner = ${WEB_USER}/' \
-  -e 's/listen\.group.*/listen.group = ${WEB_USER}/' \
+  -e "s/listen\.owner.*/listen.owner = ${WEB_USER}/" \
+  -e "s/listen\.group.*/listen.group = ${WEB_USER}/" \
   -e "s/.*listen\.backlog.*/listen.backlog = ${FPM_LISTEN_BACKLOG}/" \
   -e "s/^pm\.max_children = .*/pm.max_children = ${FPM_MAX_CHILDREN}/" \
   -e "s/^pm\.start_servers = .*/pm.start_servers = ${FPM_START_SERVERS}/" \
@@ -68,8 +68,8 @@ sed -Ei \
   -e "s/.*pm\.status_path = .*/pm.status_path = \/fpm-status/" \
   -e "s/^(;|)pm.status_listen = .*/pm.status_listen = 127.0.0.1:9001/" \
   -e "s/^(;|)ping\.path = .*/ping.path = \/fpm-ping/" \
-  -e 's/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/' \
-  -e 's/;?request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/' \
+  -e "s/\/run\/php\/.*fpm.sock/\/run\/php\/fpm.sock/" \
+  -e "s/;?request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/" \
   -e "s/^(;|)clear_env = .*/clear_env = no/" \
   "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
 

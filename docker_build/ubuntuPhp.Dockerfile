@@ -59,8 +59,7 @@ RUN apt-get update && \
     echo 'en_ZA.UTF-8 UTF-8' >> /etc/locale.gen && \
     locale-gen && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
-    echo $TZ > /etc/timezone && \
-    rm -rf /var/lib/apt/lists/*
+    echo $TZ > /etc/timezone
 
 # --- Install Build Dependencies and Common Utilities ---
 # Includes build-essential, git, dev libraries for PHP extensions, go, rust etc.
@@ -90,8 +89,7 @@ RUN apt-get update && \
       # Go & Rust
       golang \
     && \
-    update-ca-certificates --fresh && \
-    rm -rf /var/lib/apt/lists/*
+    update-ca-certificates --fresh
 
 # --- Install Go Binaries ---
 RUN GOBIN=/usr/local/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@latest
@@ -109,8 +107,7 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
     apt-get install -qy --no-install-recommends \
       nodejs \
     && \
-    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest && \
-    rm -rf /var/lib/apt/lists/*
+    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest
 
 # --- Install PHP + Dev packages + PECL extensions ---
 COPY --link ./files/php /root/php
@@ -229,10 +226,6 @@ RUN apt-get update && \
     locale-gen && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
-    rm -rf /var/lib/apt/lists/*
-
-# --- Install Runtime Dependencies ---
-RUN apt-get update && \
     apt-get install -qy --no-install-recommends \
       # Minimal Utils needed for runtime
       bash-completion bzip2 curl cron dos2unix dnsutils dumb-init expect ftp fzf \
@@ -255,6 +248,7 @@ RUN apt-get update && \
       nginx-extras \
     && \
     update-ca-certificates --fresh && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # --- Install Node.js Runtime ---
@@ -265,8 +259,9 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
     apt-get install -qy --no-install-recommends \
       nodejs \
     && \
-    # Install global npm packages IF needed at runtime
-    # npm install -g yarn@latest ... \
+    npm install -g svgo yarn@latest npm@latest npm-check-updates@latest && \
+    npm cache clean --force -g && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # --- Install PostgreSQL Client ---
@@ -276,6 +271,7 @@ RUN echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg m
     apt-get install -qy --no-install-recommends \
       postgresql-client \
     && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # --- Install PHP Runtime Packages ---
@@ -373,6 +369,7 @@ RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}.docker" && \
 
 # Copy and run the configuration script
 COPY --link --chmod=0755 ./files/configure_php_nginx.sh /configure_php_nginx.sh
+
 RUN /configure_php_nginx.sh
 
 # Create opcache JIT config file (This is specific and not part of the main sed block)
@@ -385,39 +382,8 @@ FILE1
 # --- Setup User and Permissions ---
 # Remove default ubuntu user if it exists
 RUN deluser --remove-home ubuntu || true
+
 # Add web user
-RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
-    usermod -a -G tty "${WEB_USER}" && \
-    mkdir -p /site/web && \
-      -e "s@;date.timezone =.*@date.timezone = ${PHP_TIMEZONE}@" \
-      -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
-      -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
-      -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
-      -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
-      -e "s/;default_charset = \"iso-8859-1\"/default_charset = \"UTF-8\"/" \
-      -e "s/;realpath_cache_size = .*/realpath_cache_size = 16384K/" \
-      -e "s/;realpath_cache_ttl = .*/realpath_cache_ttl = 7200/" \
-      -e "s/;intl.default_locale =/intl.default_locale = en/" \
-      -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
-      -e "s/precision.*/precision = ${PHP_PRECISION}/" \
-      -e "s#^(;|)error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
-      -e "s#^(;|)syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
-      -e "s/;opcache.enable_cli=.*/opcache.enable_cli=1/" \
-      -e "s/;opcache.enable=.*/opcache.enable=1/" \
-      -e "s/;opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
-      -e "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
-      -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
-      -e "s/;opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
-      -e "s/;opcache.fast_shutdown=.*/opcache.fast_shutdown=0/" \
-      -e "s/;opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
-      -e "s/;opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
-      -e "s/;opcache.save_comments=.*/opcache.save_comments=1/" \
-      -e "s/;opcache.load_comments=.*/opcache.load_comments=1/" \
-      -e "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=${PHP_OPCACHE_REVALIDATE_FREQ}/" \
-      -e "s/;opcache.dups_fix=.*/opcache.dups_fix=1/" \
-# --- Setup User and Permissions ---
-# Remove default ubuntu user if it exists
-RUN deluser --remove-home ubuntu || true
 RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/bash "${WEB_USER}" && \
     usermod -a -G tty "${WEB_USER}" && \
     mkdir -p /site/web && \
@@ -485,6 +451,10 @@ RUN chmod -R a+w /dev/stdout /dev/stderr /dev/stdin && \
     usermod -a -G tty syslog
 
 WORKDIR /site/web
+
+RUN chown -R "${WEB_USER}:${WEB_USER}" /site && \
+    chmod 0755 /site
+
 
 # --- Runtime Environment Variables ---
 ENV NGINX_SITES='locahost' \

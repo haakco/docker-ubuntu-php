@@ -172,8 +172,7 @@ SHELL=/bin/bash
 #rename on start
 @reboot find /site/web/.envDocker -not -user web -execdir chown "web:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 @reboot sleep 5 && find /site -path '*/.git' -prune -o -not -user web -execdir chown web: {} \+ > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
-#@reboot sleep 5 && find ${WEB_HOME_DIR} -not -path '*/\.git/*' -not -user "${WEB_USER}" -execdir chown "${WEB_USER}:" {} \+  > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
-
+@reboot sleep 10 && find /tmp -path '*/.git' -prune -o -not -user web -execdir chown web: {} \+ > /proc/\$(cat /var/run/crond.pid)/fd/1 2>&1 >> /dev/stdout
 EndOfMessage
 
 if [[ "${ENABLE_CRONTAB}" = "TRUE" ]]; then

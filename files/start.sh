@@ -162,6 +162,7 @@ fi
 chmod 700 /root/.ssh
 chown root: /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
+chmod -R u+xrW /site/.config
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 MAILTO=""

@@ -396,10 +396,10 @@ RUN adduser --home /site --uid 1000 --gecos "" --disabled-password --shell /bin/
 COPY --link ./files/shell/starship/ "/root/.config/"
 COPY --link ./files/shell/zshrc/ "/root/"
 COPY --link ./files/shell/bash/ "/root/"
-COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0500 ./files/shell/starship/ "/site/.config/"
-COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0500 ./files/shell/zshrc/ "/site/"
+COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0700 ./files/shell/starship/ "/site/.config/"
+COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0700 ./files/shell/zshrc/ "/site/"
 # If oh-my-zsh was copied for web user:
-# COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0500 ./files/shell/zshrc/.zshrc "/site/"
+# COPY --link --chown="${WEB_USER}:${WEB_USER}" --chmod=0700 ./files/shell/zshrc/.zshrc "/site/"
 
 RUN cat /root/bash_extra >> /root/.bashrc && \
     cat /root/bash_extra >> /site/.bashrc && \
@@ -453,7 +453,8 @@ RUN chmod -R a+w /dev/stdout /dev/stderr /dev/stdin && \
 WORKDIR /site/web
 
 RUN chown -R "${WEB_USER}:${WEB_USER}" /site && \
-    chmod 0755 /site
+    chmod 0755 /site && \
+    chmod -R u+rwX /site
 
 
 # --- Runtime Environment Variables ---

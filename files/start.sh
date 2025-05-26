@@ -49,7 +49,7 @@ export PHP_OPCACHE_MAX_ACCELERATED_FILES=${PHP_OPCACHE_MAX_ACCELERATED_FILES:-"6
 export PHP_OPCACHE_REVALIDATE_PATH=${PHP_OPCACHE_REVALIDATE_PATH:-"1"}
 export PHP_OPCACHE_ENABLE_FILE_OVERRIDE=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE:-"0"}
 export PHP_OPCACHE_VALIDATE_TIMESTAMPS=${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-"1"}
-export PHP_OPCACHE_REVALIDATE_FREQ=${PHP_OPCACHE_REVALIDATE_FREQ:-"0"
+export PHP_OPCACHE_REVALIDATE_FREQ=${PHP_OPCACHE_REVALIDATE_FREQ:-"0"}
 
 export PHP_OPCACHE_JIT_ENABLED=${PHP_OPCACHE_JIT_ENABLED:-"TRUE"}
 
@@ -63,6 +63,13 @@ export FPM_MAX_REQUESTS=${FPM_MAX_REQUESTS:-1000}
 export NGINX_CLIENT_BODY_BUFFER_SIZE=${NGINX_CLIENT_BODY_BUFFER_SIZE:-""}
 export NGINX_CLIENT_MAX_BODY_SIZE=${NGINX_CLIENT_MAX_BODY_SIZE:-""}
 
+env | grep 'LVENV_' | sort | sed -E -e 's/"/\\"/g' -e 's#LVENV_(.*)=#\1=#' -e 's#=(.+)#="\1"#' > /site/web/.envDocker
+if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then
+  if [[ "${CREAT_API_ENV_FILE}" = "TRUE" ]]; then
+    cp -f /site/web/.envDocker /site/web/.env
+  fi
+fi
+
 # Create runtime backups before modifying
 cp "/etc/php/${PHP_VERSION}/cli/php.ini" "/etc/php/${PHP_VERSION}/cli/php.ini.docker.runtime"
 cp "/etc/php/${PHP_VERSION}/fpm/php.ini" "/etc/php/${PHP_VERSION}/fpm/php.ini.docker.runtime"
@@ -75,20 +82,7 @@ cp "/site/nginx/config/nginx.conf" "/site/nginx/config/nginx.conf.docker.runtime
 
 # Copy base supervisor config and modify based on ENV vars
 cp /supervisord_base.conf /supervisord.conf
-  -e "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" \
-  -e "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" \
-  -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
-  -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
-  -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
-  -e "s/precision.*/precision = ${PHP_PRECISION}/" \
-  -e "s#^error_log = .*#error_log = ${PHP_ERROR_LOG}#" \
-  -e "s#^syslog.ident = .*#syslog.ident = ${PHP_IDENT}#" \
-  -e "s/opcache.memory_consumption=.*/opcache.memory_consumption=${PHP_OPCACHE_MEMORY_CONSUMPTION}/" \
-  -e "s/opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS_BUFFER}/" \
-  -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}/" \
-  -e "s/opcache.revalidate_path=.*/opcache.revalidate_path=${PHP_OPCACHE_REVALIDATE_PATH}/" \
-  -e "s/opcache.enable_file_override=.*/opcache.enable_file_override=${PHP_OPCACHE_ENABLE_FILE_OVERRIDE}/" \
-  -e "s/opcache.validate_timestamps=.*/opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}/" \
+
 # Copy base supervisor config and modify based on ENV vars
 cp /supervisord_base.conf /supervisord.conf
 
@@ -166,7 +160,7 @@ fi
 chmod 700 /root/.ssh
 chown root: /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
-chmod -R u+xrW /site/.config
+chmod -R u+rwX /site/.config
 
 cat > ${TEMP_CRON_FILE} <<- EndOfMessage
 MAILTO=""
@@ -200,13 +194,6 @@ else
   phpdismod -v ALL xdebug
   phpdismod -v ALL pcov
   phpenmod -v ALL opcache-jit
-fi
-
-if [[ "${GEN_LV_ENV}" = "TRUE" ]]; then
-  env | grep 'LVENV_' | sort | sed -E -e 's/"/\\"/g' -e 's#LVENV_(.*)=#\1=#' -e 's#=(.+)#="\1"#' > /site/web/.envDocker
-  if [[ "${CREAT_API_ENV_FILE}" = "TRUE" ]]; then
-    cp -f /site/web/.envDocker /site/web/.env
-  fi
 fi
 
 cp /etc/environment "/etc/environment.$(date +%Y%m%d%m%n)"

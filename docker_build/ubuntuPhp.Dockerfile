@@ -332,6 +332,8 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_MAX_INPUT_TIME="600" \
     PHP_SERIAL_PRECISION="-1" \
     PHP_PRECISION="-1" \
+    PHP_REALPATH_CACHE_SIZE="$M" \
+    PHP_REALPATH_CACHE_TTL="600" \
     PHP_DEFAULT_SOCKET_TIMEOUT="600" \
     PHP_OPCACHE_MEMORY_CONSUMPTION="512" \
     PHP_OPCACHE_JIT_BUFFER_SIZE="256M" \
@@ -342,6 +344,8 @@ ENV PHP_TIMEZONE="UTC" \
     PHP_OPCACHE_ENABLE_FILE_OVERRIDE="0" \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS="1" \
     PHP_OPCACHE_REVALIDATE_FREQ="1" \
+    \
+    PHP_OPCACHE_JIT_ENABLED="TRUE" \
     \
     FPM_TIMEOUT=600 \
     FPM_LISTEN_BACKLOG=1024 \
@@ -371,13 +375,6 @@ RUN cp "${PHP_INI_CLI_CONFIG_FILE}" "${PHP_INI_CLI_CONFIG_FILE}.docker" && \
 COPY --link --chmod=0755 ./files/configure_php_nginx.sh /configure_php_nginx.sh
 
 RUN /configure_php_nginx.sh
-
-# Create opcache JIT config file (This is specific and not part of the main sed block)
-RUN <<FILE1 cat > /etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini
-; Ability to disable jit if enabling debugging
-opcache.jit_buffer_size=${PHP_OPCACHE_JIT_BUFFER_SIZE}
-opcache.jit=${PHP_OPCACHE_JIT}
-FILE1
 
 # --- Setup User and Permissions ---
 # Remove default ubuntu user if it exists

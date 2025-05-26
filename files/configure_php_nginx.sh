@@ -16,8 +16,8 @@ sed -Ei \
   -e "s/max_input_time = .*/max_input_time = ${PHP_MAX_INPUT_TIME}/" \
   -e "s/default_socket_timeout = .*/default_socket_timeout = ${PHP_DEFAULT_SOCKET_TIMEOUT}/" \
   -e "s/;?default_charset = \"iso-8859-1\"/default_charset = \"UTF-8\"/" \
-  -e "s/;?realpath_cache_size = .*/realpath_cache_size = 16384K/" \
-  -e "s/;?realpath_cache_ttl = .*/realpath_cache_ttl = 7200/" \
+  -e "s/;?realpath_cache_size = .*/realpath_cache_size = ${PHP_REALPATH_CACHE_SIZE}/" \
+  -e "s/;?realpath_cache_ttl = .*/realpath_cache_ttl = ${PHP_REALPATH_CACHE_TTL}/" \
   -e "s/;?intl.default_locale =/intl.default_locale = en/" \
   -e "s/serialize_precision.*/serialize_precision = ${PHP_SERIAL_PRECISION}/" \
   -e "s/precision.*/precision = ${PHP_PRECISION}/" \
@@ -72,6 +72,21 @@ sed -Ei \
   -e "s/;?request_terminate_timeout = .*/request_terminate_timeout = ${FPM_TIMEOUT}/" \
   -e "s/^(;|)clear_env = .*/clear_env = no/" \
   "/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
+
+if [[ "${PHP_OPCACHE_JIT_ENABLED}" = "TRUE" ]]; then
+  echo "--- Creating opcache JIT configuration file ---"
+  cat > "/etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini" << EOF
+; Ability to disable jit if enabling debugging
+opcache.jit_buffer_size=${PHP_OPCACHE_JIT_BUFFER_SIZE}
+opcache.jit=${PHP_OPCACHE_JIT}
+EOF
+else
+  # Remove opcache JIT config file if it exists
+  if [[ -f "/etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini" ]]; then
+    echo "--- Removing opcache JIT configuration file ---"
+    rm -f "/etc/php/${PHP_VERSION}/mods-available/opcache-jit.ini"
+  fi
+fi
 
 # Only apply Nginx changes if NGINX_SITES is set (likely runtime)
 if [[ -n "${NGINX_SITES}" ]]; then

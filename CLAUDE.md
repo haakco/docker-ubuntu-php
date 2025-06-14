@@ -152,4 +152,4 @@ docker run -e ENABLE_REVERB=TRUE -e REVERB_PORT=8080 [image-name]
 - Supports both development (with Xdebug) and production modes
 - Includes modern shell (zsh with starship prompt) for development
 - Automatically manages file permissions for the web user
-- Health check endpoint available at port 8080 `/nginx_status`
+- Health check endpoint available at port 8081 `/nginx_status`

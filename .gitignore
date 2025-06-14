@@ -5,4 +5,5 @@
 
 .aider*
 !.aiderignore
-adocs
+adocsCLAUDE.md
+.claude/*

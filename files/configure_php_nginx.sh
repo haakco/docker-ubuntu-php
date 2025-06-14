@@ -93,7 +93,7 @@ if [[ -n "${NGINX_SITES}" ]]; then
   echo "--- Applying Nginx site configurations ---"
   sed -Ei \
     -e "s/NGINX_SITES/${NGINX_SITES}/" \
-    -e "s/LARAVEL_WEBSOCKETS_PORT/${LARAVEL_WEBSOCKETS_PORT}/" \
+    -e "s/REVERB_PORT/${REVERB_PORT}/" \
     /site/nginx/config/sites.conf
 
   echo "--- Applying Nginx main configurations (if vars set) ---"

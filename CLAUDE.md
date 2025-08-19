@@ -153,3 +153,26 @@ docker run -e ENABLE_REVERB=TRUE -e REVERB_PORT=8080 [image-name]
 - Includes modern shell (zsh with starship prompt) for development
 - Automatically manages file permissions for the web user
 - Health check endpoint available at port 8081 `/nginx_status`
+
+## Sub-Agent Usage Policy
+
+**ALWAYS use sub-agents (Task tool) when safe and beneficial:**
+
+### When to Use Sub-Agents
+- **Search Operations**: Use agents for searching keywords, patterns, or answering "which file does X?" questions
+- **Parallel Analysis**: Launch multiple agents for independent analysis tasks
+- **File Updates**: Use multiple agents to update many files concurrently
+- **Exploration**: Use agents when exploring unfamiliar parts of the codebase
+
+### Best Practices
+- **Launch Multiple Agents**: Use concurrent agents whenever possible to maximize performance
+- **Detailed Prompts**: Provide highly detailed task descriptions since agents work autonomously
+- **Batch Operations**: Group similar tasks and launch agents in parallel
+
+### When NOT to Use Sub-Agents
+- Reading specific known file paths (use Read/Glob directly)
+- Writing critical code that needs review
+- Tasks requiring interactive feedback
+- Simple operations on 1-2 files
+
+**Remember**: Sub-agents dramatically improve performance for search and bulk operations. When in doubt, use them!

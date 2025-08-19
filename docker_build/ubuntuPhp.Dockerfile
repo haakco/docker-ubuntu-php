@@ -116,9 +116,7 @@ RUN cat /root/php/ondrej-php.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/on
     echo "deb https://ppa.launchpadcontent.net/ondrej/php/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ondrej-php.list && \
     apt-get update && \
     apt-get install -qy --no-install-recommends \
-      # Runtime libs needed by PHP extensions
-      libbrotli1 libcurl4 libicu[67]* libidn1* libidn2-0 libmcrypt4 libzstd1 libsodium23 \
-      # PHP packages including -dev for PECL
+      libbrotli1 libcurl4 libicu74 libidn-dev libidn12 libidn2-0 libmcrypt4 libzstd1 libsodium23 \
       php${PHP_VERSION}-cli php${PHP_VERSION}-fpm \
       php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 \
       php${PHP_VERSION}-common php${PHP_VERSION}-curl \
@@ -227,24 +225,20 @@ RUN apt-get update && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     apt-get install -qy --no-install-recommends \
-      # Minimal Utils needed for runtime
       bash-completion bzip2 curl cron dos2unix dnsutils dumb-init expect ftp fzf \
       gawk git git-extras git-core git-lfs gnupg2 \
       jq logrotate lsb-release mysql-client net-tools openssl openssh-server \
       procps psmisc redis-tools rsync rsyslog supervisor \
       tar telnet tree unzip uuid-runtime vim wget whois xz-utils \
       zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
-      # Image/Video processing runtime libs (if needed by PHP extensions or app)
       ghostscript ghostscript-x gsfonts-other \
       imagemagick imagemagick-common \
       ffmpeg \
       libavcodec-extra libavformat-extra libavfilter-extra \
       gifsicle jpegoptim libavif-bin optipng pngquant webp \
-      # PHP extension runtime libs
-      libbrotli1 libcurl4 libicu[67]* libidn1* libidn2-0 libmcrypt4 libsodium23 libssh2-1 \
+      libbrotli1 libcurl4 libidn2-0 libmcrypt4 libsodium23 libssh2-1 \
       libxml2 libssl3 libgmp10 libldap2 libpq5 libsqlite3-0 libbz2-1.0 libreadline8 \
       libxslt1.1 libzip4 librdkafka1 libzstd1 \
-      # Nginx
       nginx-extras \
     && \
     update-ca-certificates --fresh && \

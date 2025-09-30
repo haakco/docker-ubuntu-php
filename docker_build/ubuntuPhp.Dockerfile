@@ -65,28 +65,23 @@ RUN apt-get update && \
 # Includes build-essential, git, dev libraries for PHP extensions, go, rust etc.
 RUN apt-get update && \
     apt-get install -qy --no-install-recommends \
-      # Build tools
       build-essential \
       pkg-config \
-      # Common Utils needed for build or runtime
       bash-completion bzip2 curl cron dos2unix dnsutils dumb-init expect ftp fzf \
       gawk git git-extras git-core git-lfs gnupg2 \
       jq logrotate mysql-client net-tools openssl openssh-server \
       procps psmisc redis-tools rsync rsyslog supervisor \
       tar telnet tree unzip uuid-dev vim wget whois xz-utils \
       zsh zsh-syntax-highlighting zsh-autosuggestions zsh-common \
-      # Image/Video processing build deps (runtime libs installed later if needed)
       ghostscript ghostscript-x gsfonts-other \
       imagemagick imagemagick-common \
       ffmpeg \
       libavcodec-extra libavformat-extra libavfilter-extra \
       gifsicle jpegoptim libavif-bin optipng pngquant webp \
-      # PHP extension build deps
       libbrotli-dev libcurl4-openssl-dev libicu-dev libidn*-dev \
       libmcrypt-dev libsodium-dev libssh2-1-dev libzstd-dev libxml2-dev libssl-dev \
       libgmp-dev libldap2-dev libpq-dev libsqlite3-dev libbz2-dev libreadline-dev \
       libxslt1-dev libzip-dev librdkafka-dev \
-      # Go & Rust
       golang \
     && \
     update-ca-certificates --fresh

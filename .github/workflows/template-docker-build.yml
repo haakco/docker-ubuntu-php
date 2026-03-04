@@ -59,7 +59,7 @@ jobs:
             type=edge,enable=true,branch=$repo.default_branch # Tag edge to default
             type=raw,value=latest,enable={{is_default_branch}} # Only set latest on default branch
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{inputs.DOCKER_REGISTRY}}
           username: ${{ github.actor }}

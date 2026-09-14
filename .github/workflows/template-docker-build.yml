@@ -37,19 +37,10 @@ on:
 jobs:
   docker_build_and_push:
     name: Build and push base image
-    runs-on: haakco-build
-    container:
-      image: ghcr.io/haakco/actions-runner:1
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-      options: --user root
+    runs-on: "self-hosted"
     concurrency:
       group: "${{inputs.DOCKER_REGISTRY}}/${{inputs.CREATE_IMAGE_NAME}}:${{github.ref_name}}"
       cancel-in-progress: true
-    env:
-      BUILDX_BUILDER_NAME: htz-containerd-buildkit
-      BUILDX_CLUSTER_ENDPOINTS: tcp://buildkitd-0.buildkitd-headless.ga-ss-haakco.svc.cluster.local:1234,tcp://buildkitd-1.buildkitd-headless.ga-ss-haakco.svc.cluster.local:1234,tcp://buildkitd-2.buildkitd-headless.ga-ss-haakco.svc.cluster.local:1234
     steps:
       - name: Check out the repo
         uses: actions/checkout@v7
@@ -77,16 +68,8 @@ jobs:
         uses: docker/setup-qemu-action@v4
         with:
           platforms: ${{ inputs.BUILD_PLATFORMS }}
-      - name: Set up remote Buildx
-        shell: bash
-        run: |
-          set -euo pipefail
-          IFS=',' read -r -a endpoints <<< "$BUILDX_CLUSTER_ENDPOINTS"
-          docker buildx create --name "$BUILDX_BUILDER_NAME" --driver remote "${endpoints[0]}" --use
-          for endpoint in "${endpoints[@]:1}"; do
-            docker buildx create --name "$BUILDX_BUILDER_NAME" --append --driver remote "$endpoint"
-          done
-          docker buildx inspect --bootstrap
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
         with:
           driver-opts: |
             image=moby/buildkit:master
@@ -94,7 +77,6 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
-          builder: ${{ env.BUILDX_BUILDER_NAME }}
           context: ${{inputs.DOCKER_CONTEXT}}
           pull: true
           push: true
